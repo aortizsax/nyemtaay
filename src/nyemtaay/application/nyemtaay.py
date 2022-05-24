@@ -56,14 +56,19 @@ def main():
             action="store",
             default="output",
             help="Prefix for output files [default=%(default)s].")
+    parser.add_argument(
+            "-hd", "--header",
+            action="store",
+            default="False",
+            help="Prefix for output files [default=%(default)s].")
+            
     args = parser.parse_args()
-    print("Hello, world.")
-    print(args)
-
+    print("Parsing")
     #use parser modules
     #pass list of fasta files to fasta parser
     readFastaFiles(args.fastafiles)
     #pass metadata to its parser
-    readMetadata(args.metadata)
+    readMetadata(args.metadata[0])
+    print("Done parsing")
 if __name__ == '__main__':
     main()
