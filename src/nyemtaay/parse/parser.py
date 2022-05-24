@@ -5,15 +5,18 @@
 ###########################################################################
 ## Reader Implementation
 
-import dendopy
+import dendropy
+import numpy as np 
+import pandas as pd
 
 def readMetadata(filename=''):
-    
+    print(filename)
     return
     
     
 
 def readFastaFiles(filenames=[]):
+    print(filenames)
     
     return
 

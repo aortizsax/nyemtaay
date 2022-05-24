@@ -35,6 +35,7 @@ import pathlib
 import sys
 import argparse
 #import modules front end parser 
+from nyemtaay.parse.parser import readFastaFiles , readMetadata
 
 def main():
     parser = argparse.ArgumentParser(description=None)
@@ -58,8 +59,11 @@ def main():
     args = parser.parse_args()
     print("Hello, world.")
     print(args)
-    
-    #use parser modules
 
+    #use parser modules
+    #pass list of fasta files to fasta parser
+    readFastaFiles(args.fastafiles)
+    #pass metadata to its parser
+    readMetadata(args.metadata)
 if __name__ == '__main__':
     main()
