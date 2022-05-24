@@ -39,7 +39,13 @@ import argparse
 def main():
     parser = argparse.ArgumentParser(description=None)
     parser.add_argument(
-            "src_paths",
+            "-f","--fastafiles",
+            action="store",
+            nargs="+",
+            metavar="FILE",
+            help="Path to source file(s).")
+    parser.add_argument(
+            "-m","--metadata",
             action="store",
             nargs="+",
             metavar="FILE",
@@ -51,6 +57,7 @@ def main():
             help="Prefix for output files [default=%(default)s].")
     args = parser.parse_args()
     print("Hello, world.")
+    print(args)
 
 if __name__ == '__main__':
     main()
