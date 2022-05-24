@@ -11,5 +11,6 @@ you can install Nyemtaayby running:
 	
 ## Usage
 Test data can be tested using 
+	
 	$ cd nyemtaay/
 	$ nyemtaay -m ./tests/testdata/*.csv -f ./tests/testdata/*.fasta
