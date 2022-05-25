@@ -18,23 +18,21 @@ def read_metadata(filename=""):
 def read_fasta_files(filenames=[]):
 
     li = len(filenames)
-    lj = 
+    lj = 1
 
     # make arrary  null
     data = np.zeros([li, lj], dtype="int64")
-    counter = 0
     options = {"A": 0, "G": 1, "T": 2, "C": 3}
 
-    for file in filenames:
+    for i, file in ennumerate(filenames):
         with open(file) as f:
             lines = f.readlines()
             cc = 0
-            for i in lines[1]:
-                char = options[i]
-                data[counter, cc] = char
+            for j,nt in enumerate(lines[1]):
+                char = options[nt]
+                data[i, j] = char
                 cc += 1
 
-        counter += 1
     print(data)
     return
 
