@@ -29,8 +29,9 @@ __project__ = re.match(r".*^__project__\s*=\s*['\"](.*?)['\"]\s*$.*", project_in
 setup(
     name=__project__,
     version=__version__,
-    author="Jeet Sukumaran",
-    author_email="jeetsukumaran@gmail.com",
+    author="Adrian Ortiz-Velez",
+    authors=["Adrian Ortiz-Velez","Jeet Sukumaran"],
+    author_email="aortizsax@gmail.com",
     packages=find_packages("src"),
     package_dir={"": "src"},
     entry_points={
@@ -63,7 +64,7 @@ setup(
     },
     test_suite = "tests",
     # url="http://pypi.python.org/pypi/nyemtaay",
-    url="https://github.com/jeetsukumaran/nyemtaay",
+    url="https://github.com/aortizsax/nyemtaay",
     license="LICENSE",
     description="A Project",
     long_description=_read(["README.md"]),
