@@ -74,11 +74,13 @@ def main():
 
     args = parser.parse_args()
     print("Parsing")
+    
     # use parser modules
     # pass list of fasta files to fasta parser
-    readFastaFiles(args.fastafiles)
+    read_fasta_files(args.fastafiles)
+    
     # pass metadata to its parser
-    readMetadata(args.metadata[0])
+    read_metadata(args.metadata[0])
     print("Done parsing")
 
 

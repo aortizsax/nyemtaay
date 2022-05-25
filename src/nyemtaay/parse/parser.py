@@ -10,15 +10,15 @@ import numpy as np
 import pandas as pd
 
 
-def readMetadata(filename=""):
+def read_metadata(filename=""):
     print(pd.read_csv(filename, header=0, index_col=0))
     return
 
 
-def readFastaFiles(filenames=[]):
+def read_fasta_files(filenames=[]):
 
-    li = 3
-    lj = len(filenames)
+    li = len(filenames)
+    lj = 
 
     # make arrary  null
     data = np.zeros([li, lj], dtype="int64")
