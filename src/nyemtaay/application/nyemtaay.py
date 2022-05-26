@@ -36,7 +36,7 @@ import sys
 import argparse
 
 # import modules front end parser
-from nyemtaay.parse.parser import readFastaFiles, readMetadata
+from nyemtaay.parse.parser import read_fasta_files, read_metadata
 
 
 def main():
