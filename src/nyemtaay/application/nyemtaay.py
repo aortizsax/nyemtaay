@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 ##############################################################################
-## Copyright (c) 2022 Jeet Sukumaran.
+## Copyright (c) 2022 Adrian Ortiz.
 ## All rights reserved.
 ##
 ## Redistribution and use in source and binary forms, with or without
@@ -36,25 +36,39 @@ import sys
 import argparse
 
 # import modules front end parser
-from nyemtaay.parse.parser import read_fasta_files, read_metadata
+from nyemtaay.parse.parse_io import read_fasta_files, read_population_data,polymorphism_read_csv
 
 
 def main():
     parser = argparse.ArgumentParser(description=None)
+    # parser.add_argument(
+        # "-sp",
+        # "--sequence_polymorphism_files",
+        # action="store",
+        # nargs="+",
+        # metavar="FILE",
+        # help="Path to source file(s).",
+    # )
     parser.add_argument(
-        "-f",
-        "--fastafiles",
+        "-p",
+        "--population_data",
         action="store",
         nargs="+",
         metavar="FILE",
-        help="Path to source file(s).",
+        help="Path to population structure file(s).",
     )
     parser.add_argument(
-        "-m",
-        "--metadata",
+        "-f",
+        "--fasta_files",
+        nargs='+',
+        default="None",
+        help="Prefix for output files [default=%(default)s].",
+    )
+    parser.add_argument(
+        "-sp",
+        "--sequence_polymorphism_files",
         action="store",
-        nargs="+",
-        metavar="FILE",
+        default="None",
         help="Path to source file(s).",
     )
     parser.add_argument(
@@ -68,19 +82,33 @@ def main():
         "-hd",
         "--header",
         action="store",
-        default="False",
-        help="Prefix for output files [default=%(default)s].",
+        default="0",
+        help="header line for seq polym files [default=%(default)s].",
     )
 
     args = parser.parse_args()
     print("Parsing")
+    if not isinstance(args.fasta_files,type(None)): 
+        print('fasta_files')
+        print(args.fasta_files,args.header)
+        # use parser modules
+        # pass list of fasta files to fasta parser
+        read_fasta_files(args.fasta_files)
     
-    # use parser modules
-    # pass list of fasta files to fasta parser
-    read_fasta_files(args.fastafiles)
+
+    else: 
+        print('sp')
+        print(args.sequence_polymorphism_files,args.header)
+        # use parser modules
+        # pass list of fasta files to fasta parser
+        
+        polymorphism_read_csv(args.sequence_polymorphism_files[0],int(args.header))
     
-    # pass metadata to its parser
-    read_metadata(args.metadata[0])
+
+    if args.population_data:
+        print('population')
+        # pass population_data to its parser
+        read_population_data(args.population_data)
     print("Done parsing")
 
 
