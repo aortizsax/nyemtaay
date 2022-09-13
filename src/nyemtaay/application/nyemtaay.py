@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 ##############################################################################
-## Copyright (c) 2022 Jeet Sukumaran.
+## Copyright (c) 2022 Adrian Ortiz-Velez.
 ## All rights reserved.
 ##
 ## Redistribution and use in source and binary forms, with or without
