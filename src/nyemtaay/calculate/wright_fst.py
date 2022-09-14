@@ -1,6 +1,5 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-
 ##############################################################################
 ## Copyright (c) 2022 Adrian Ortiz-Velez.
 ## All rights reserved.
@@ -29,69 +28,21 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ##
 ##############################################################################
+#
+# two functions for parsing a list of fasta files and a meta data
+#
+###########################################################################
+## Reader Implementation
 
-import os
-import pathlib
-import sys
-import argparse
+import dendropy
+import numpy as np
+import pandas as pd
 
-# import modules front end parser
-from nyemtaay.parse.parser import read_fasta_files, read_metadata
-from nyemtaay.calculate import wright_fst
-
-def main():
-    parser = argparse.ArgumentParser(description=None)
-    parser.add_argument(
-        "-f",
-        "--fastafiles",
-        action="store",
-        nargs="+",
-        metavar="FILE",
-        help="Path to source file(s).",
-    )
-    parser.add_argument(
-        "-m",
-        "--metadata",
-        action="store",
-        nargs="+",
-        metavar="FILE",
-        help="Path to source file(s).",
-    )
-    parser.add_argument(
-        "-o",
-        "--output-prefix",
-        action="store",
-        default="output",
-        help="Prefix for output files [default=%(default)s].",
-    )
-    parser.add_argument(
-        "-hd",
-        "--header",
-        action="store",
-        default="False",
-        help="Prefix for output files [default=%(default)s].",
-    )
-    parser.add_argument(
-        "-calc",
-        "--calculate",
-        action="store",
-        default="False",
-        help="Prefix for output files [default=%(default)s].",
-    )
-
-    args = parser.parse_args()
-    print("Parsing")
+def wright_fst(sequences,data):
+    print(sequences,'\n',data)
     
-    # use parser modules
-    # pass list of fasta files to fasta parser
-    sequence_matrix = read_fasta_files(args.fastafiles)
+    for position in sequences:
+        print(np.mean(position))
     
-    # pass metadata to its parser
-    data_matrix = read_metadata(args.metadata[0])
-    print("Done parsing")
-    
-    wright_fst.wright_fst(sequence_matrix, data_matrix)
+    return
 
-
-if __name__ == "__main__":
-    main()
