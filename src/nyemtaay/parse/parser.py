@@ -40,36 +40,74 @@ import pandas as pd
 
 
 def read_metadata(filename):
-    print(pd.read_csv(filename, header=0, index_col=0))
-    return pd.read_csv(filename, header=0, index_col=0)
+    population_structure = pd.read_csv(filename, header=0, index_col=0)
+    print(population_structure)
+    return population_structure
 
 
 def read_fasta_files(filenames):
-
-    number_of_files = len(filenames)
     
-    #li = len(filenames) 
+    print(len(filenames))
     
-    with open(filenames[0]) as f:
-        lines = f.readlines()
-        nt = lines[1].strip()
-        length_sequence = len(nt)        
-        lj = len(nt)
+    if len(filenames) > 1:
+        number_of_files = len(filenames)
         
-    # make arrary  null
-    data = np.zeros([number_of_files, length_sequence], dtype="int64")
-    options = {"A": 0, "G": 1, "T": 2, "C": 3}
-
-    for i, file in enumerate(filenames):
-        with open(file) as f:
+        with open(filenames[0]) as f:
             lines = f.readlines()
-            cc = 0
-            for j,nt in enumerate(lines[1]):
-                char = options[nt]
-                data[i, j] = char
-                cc += 1
+            nt = lines[1].strip()
+            length_sequence = len(nt)        
+            
+        # make arrary  null
+        data = np.zeros([number_of_files, length_sequence], dtype="int64")
+        alphabet = {"A": 0, "G": 1, "T": 2, "C": 3}
 
-    print(data)
-    return data
+        for i, file in enumerate(filenames):
+            with open(file) as f:
+                lines = f.readlines()
+                for j,nt in enumerate(lines[1]):
+                    char = alphabet[nt]
+                    data[i, j] = char
 
+        print(data)
+        return data
+    
+    else:
+        with open(filenames[0]) as f:
+            lines = f.readlines()
+            nt = lines[1].strip()
+            length_sequence = len(nt)
+            number_sequences = int(len(lines)/2)
+            
+            # make arrary  null
+            data = np.zeros([number_sequences, length_sequence], dtype="int64")
+            alphabet = {"A": 0, "G": 1, "T": 2, "C": 3}
+            
+            labels = lines[::2]
+            alignment = lines[1::2]
+            print(labels)
+            print(alignment)
+            
+            for i, label in enumerate(labels):
+                label = label.strip()[1:]
+                print(i,label)
+                alignment[i] = alignment[i].strip()
+                for j, SNP in enumerate(alignment[i]):
+                    data[i,j] = alphabet[SNP]
+                    
+        print('length',length_sequence,'num sequenes',number_sequences)
+        return data
 pass
+
+
+
+
+
+
+
+
+
+
+
+
+
+

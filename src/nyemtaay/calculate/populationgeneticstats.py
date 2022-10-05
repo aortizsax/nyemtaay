@@ -37,8 +37,49 @@
 import dendropy
 import numpy as np
 import pandas as pd
+from nyemtaay.mathlib import mathfn
 
-def wright_fst(sequences,data):
+def segregating_sites(sequences,data):
+    print("identifying segratating sites")
+    index = data.index
+    length = len(sequences[0])
+    sequence_dataframe = pd.DataFrame(sequences, 
+                                      columns = range(1,length+1),
+                                      index = index
+                                      )
+    
+    seg_sites = []
+    for position in sequence_dataframe:
+        frequncies = sequence_dataframe[position].value_counts(normalize=True)
+        if len(frequncies) > 1:
+            seg_sites.append(position)
+            
+    print(seg_sites)
+    return seg_sites
+
+def number_segregating_sites(sequences,data):
+    print("calculating number segratating sites")
+    seg_sites = segregating_sites(sequences,data)
+    print("number segrating sites:",len(seg_sites))
+    return len(seg_sites)
+    
+def nucleotide_diversity(sequences,data):
+    print("calculating nucleotide diversity(pi)")
+    index = data.index
+    length = len(sequences[0])
+    sequence_dataframe = pd.DataFrame(sequences, 
+                                      columns = range(1,length+1),
+                                      index = index
+                                      )
+    
+
+    number_sequences = len(sequence_dataframe)
+    number_comparisons = mathfn.nchoose2(number_sequences)
+    print(number_sequences)
+    
+
+def frequency(sequences,data):
+    print("calculating frquencies")
     print(sequences,'\n',data)
     
     index = data.index
@@ -52,14 +93,24 @@ def wright_fst(sequences,data):
 
     
     for position in sequence_dataframe:
-        print(sequence_dataframe[position])
         print(sequence_dataframe[position].value_counts(normalize=True))
         
     
-    for position in sequences.T:
-        print(position)
-        print(np.mean(position))
-        np
+    return
+
+
+def wright_fst(sequences,data): 
+    print("caluculating wright_fst")   
+    index = data.index
+    length = len(sequences[0])
+    sequence_dataframe = pd.DataFrame(sequences, 
+                                      columns = range(1,length+1),
+                                      index = index
+                                      )
+    
+    #for position in sequence_dataframe:
+     #   print(sequence_dataframe[position].value_counts(normalize=True))
+        
     
     return
 

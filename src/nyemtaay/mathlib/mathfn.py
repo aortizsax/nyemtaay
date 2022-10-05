@@ -29,59 +29,16 @@
 ##
 ##############################################################################
 #
-# two functions for parsing a list of fasta files and a meta data
+# math library for n choose 2 ect.
 #
 ###########################################################################
 ## Reader Implementation
 
-import dendropy
-import numpy as np
-import pandas as pd
 
-def wright_fst(sequences,data):
-    print(sequences,'\n',data)
-    
-    index = data.index
-    length = len(sequences[0])
-    sequence_dataframe = pd.DataFrame(sequences, 
-                                      columns = range(1,length+1),
-                                      index = index
-                                      )
-    
-    print(sequence_dataframe)
-
-    
-    for position in sequence_dataframe:
-        print(sequence_dataframe[position])
-        print(sequence_dataframe[position].value_counts(normalize=True))
-        
-    
-    for position in sequences.T:
-        print(position)
-        print(np.mean(position))
-        np
-    
-    return
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+def nchoose2(n):
+    '''
+    performs n choose 2 math
+    '''
+    return ( n * ( n - 1 ) ) / 2 
 
 

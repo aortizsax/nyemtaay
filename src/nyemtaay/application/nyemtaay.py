@@ -37,7 +37,7 @@ import argparse
 
 # import modules front end parser
 from nyemtaay.parse.parser import read_fasta_files, read_metadata
-from nyemtaay.calculate import wright_fst
+from nyemtaay.calculate import populationgeneticstats
 
 def main():
     parser = argparse.ArgumentParser(description=None)
@@ -90,7 +90,12 @@ def main():
     data_matrix = read_metadata(args.metadata[0])
     print("Done parsing")
     
-    wright_fst.wright_fst(sequence_matrix, data_matrix)
+    populationgeneticstats.wright_fst(sequence_matrix, data_matrix)
+    
+    
+    populationgeneticstats.number_segregating_sites(sequence_matrix,data_matrix)
+    
+    populationgeneticstats.nucleotide_diversity(sequence_matrix,data_matrix)
 
 
 if __name__ == "__main__":
