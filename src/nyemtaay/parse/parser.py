@@ -39,8 +39,9 @@ import numpy as np
 import pandas as pd
 
 
-def read_metadata(filename):
-    population_structure = pd.read_csv(filename, header=0, index_col=0)
+def read_metadata(filename,hd):
+    print(int(hd))
+    population_structure = pd.read_csv(filename, header=int(hd), index_col=0)
     print(population_structure)
     return population_structure
 
@@ -59,7 +60,7 @@ def read_fasta_files(filenames):
             
         # make arrary  null
         data = np.zeros([number_of_files, length_sequence], dtype="int64")
-        alphabet = {"A": 0, "G": 1, "T": 2, "C": 3}
+        alphabet = {"A": 0, "G": 1, "T": 2, "C": 3,'R':4}
 
         for i, file in enumerate(filenames):
             with open(file) as f:
@@ -75,27 +76,49 @@ def read_fasta_files(filenames):
         with open(filenames[0]) as f:
             lines = f.readlines()
             nt = lines[1].strip()
-            length_sequence = len(nt)
-            number_sequences = int(len(lines)/2)
+            labels = []
+
             
+            for line in lines:
+                if line.startswith('>'):
+                    labels.append(line)
+                   
+            label_count = -1
+            alignment = [''] * len(labels)
+            for line in lines:
+                if line.startswith('>'):
+                    label_count+=1
+                else:
+                    alignment[label_count] += line.strip() 
+            
+            length_sequence = len(alignment[0])
+            number_sequences = len(labels)
+
             # make arrary  null
             data = np.zeros([number_sequences, length_sequence], dtype="int64")
-            alphabet = {"A": 0, "G": 1, "T": 2, "C": 3}
+            alphabet = {"A": 0, "G": 1, "T": 2, "C": 3,'R':4,'Y':4,'-':4,'K':4,
+                        'H':4,'W':4,'N':4,'S':4,'M':4,'B':4,'V':4,'D':4}
             
-            labels = lines[::2]
-            alignment = lines[1::2]
-            print(labels)
-            print(alignment)
             
             for i, label in enumerate(labels):
                 label = label.strip()[1:]
-                print(i,label)
+
                 alignment[i] = alignment[i].strip()
                 for j, SNP in enumerate(alignment[i]):
+
                     data[i,j] = alphabet[SNP]
                     
-        print('length',length_sequence,'num sequenes',number_sequences)
+        print('length',len(alignment[0]),'num sequenes',len(labels))
         return data
+        
+def to_dataframe(sequences,data):
+    index = data.index
+    length = len(sequences[0])
+    sequence_dataframe = pd.DataFrame(sequences, 
+                                      columns = range(1,length+1),
+                                      index = index
+                                      )
+    return sequence_dataframe
 pass
 
 

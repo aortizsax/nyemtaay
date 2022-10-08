@@ -36,8 +36,10 @@ import sys
 import argparse
 
 # import modules front end parser
-from nyemtaay.parse.parser import read_fasta_files, read_metadata
+from nyemtaay.parse.parser import read_fasta_files, read_metadata, to_dataframe
 from nyemtaay.calculate import populationgeneticstats
+from nyemtaay.mathlib import sterling
+from nyemtaay.tests.nuetrality import tajimas_d
 
 def main():
     parser = argparse.ArgumentParser(description=None)
@@ -68,7 +70,7 @@ def main():
         "-hd",
         "--header",
         action="store",
-        default="False",
+        default=0,
         help="Prefix for output files [default=%(default)s].",
     )
     parser.add_argument(
@@ -87,15 +89,27 @@ def main():
     sequence_matrix = read_fasta_files(args.fastafiles)
     
     # pass metadata to its parser
-    data_matrix = read_metadata(args.metadata[0])
+    data_matrix = read_metadata(args.metadata[0],args.header)
     print("Done parsing")
     
-    populationgeneticstats.wright_fst(sequence_matrix, data_matrix)
+    # convert matrix to dataframe with indexes matching metadata
+    sequence_dataframe = to_dataframe(sequence_matrix, data_matrix)
+    
+    sequence_dataframe.wright_fst = populationgeneticstats.wright_fst(sequence_dataframe, data_matrix)
+    
+    sequence_dataframe.segregating_sites  = populationgeneticstats.number_segregating_sites(sequence_dataframe,data_matrix)
     
     
-    populationgeneticstats.number_segregating_sites(sequence_matrix,data_matrix)
+    tajimas_d(sequence_dataframe,data_matrix)
     
-    populationgeneticstats.nucleotide_diversity(sequence_matrix,data_matrix)
+    #sequence_dataframe.nuc_div = populationgeneticstats.nucleotide_diversity(sequence_dataframe,data_matrix)
+
+        
+    
+    sequence_dataframe.sfs = populationgeneticstats.frequency_spectrum(sequence_dataframe,data_matrix)
+
+
+    #populationgeneticstats.inbreeding_coefficient(sequence_matrix,data_matrix)
 
 
 if __name__ == "__main__":

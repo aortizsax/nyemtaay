@@ -34,19 +34,15 @@
 ###########################################################################
 ## Reader Implementation
 
+# Libraries 
+import numpy as np 
+import matplotlib.pyplot as plt
 import dendropy
-import numpy as np
 import pandas as pd
 from nyemtaay.mathlib import mathfn
 
-def segregating_sites(sequences,data):
+def segregating_sites(sequence_dataframe,data):
     print("identifying segratating sites")
-    index = data.index
-    length = len(sequences[0])
-    sequence_dataframe = pd.DataFrame(sequences, 
-                                      columns = range(1,length+1),
-                                      index = index
-                                      )
     
     seg_sites = []
     for position in sequence_dataframe:
@@ -57,80 +53,118 @@ def segregating_sites(sequences,data):
     print(seg_sites)
     return seg_sites
 
-def number_segregating_sites(sequences,data):
+def number_segregating_sites(sequence_dataframe,data):
     print("calculating number segratating sites")
-    seg_sites = segregating_sites(sequences,data)
+    seg_sites = segregating_sites(sequence_dataframe,data)
     print("number segrating sites:",len(seg_sites))
     return len(seg_sites)
     
-def nucleotide_diversity(sequences,data):
+def number_pairwise_differences(sequence_dataframe):
+
+    count_pairwise_differences = 0
+    
+    
+    for i, (index, sequence) in enumerate(sequence_dataframe[:-1].iterrows()): 
+        #print(i,sequence)
+        difference = abs(sequence - sequence_dataframe[i+1:])
+        #print(difference)
+        normalized_diff = (difference / difference)
+        
+        count_pairwise_differences += normalized_diff.sum().sum()
+    return count_pairwise_differences
+    
+def nucleotide_diversity(sequence_dataframe,data):
     print("calculating nucleotide diversity(pi)")
-    index = data.index
-    length = len(sequences[0])
-    sequence_dataframe = pd.DataFrame(sequences, 
-                                      columns = range(1,length+1),
-                                      index = index
-                                      )
     
 
     number_sequences = len(sequence_dataframe)
     number_comparisons = mathfn.nchoose2(number_sequences)
-    print(number_sequences)
+    length = len(sequence_dataframe.iloc[0])
+    
+    nucleotide_div = number_pairwise_differences(sequence_dataframe)
+    nucleotide_div /= number_comparisons
+    nucleotide_div /= length
+    
+    print("nucdiv",nucleotide_div)
+    return nucleotide_div
+    
     
 
-def frequency(sequences,data):
+
+
+
+def frequency_spectrum(sequence_dataframe,data):
+    print("calculating sfs (add per sequnce length)")
+    length = len(sequence_dataframe.iloc[0]) 
+    
+    site_frequency_spectrum = [0] * int(length/2)
+    for position in sequence_dataframe:
+        site_counts = sequence_dataframe[position].value_counts().tolist()
+        if len(site_counts) > 1:
+            site_frequency_spectrum[site_counts[1]] += 1
+            
+    print(site_frequency_spectrum)
+    
+    y_pos = np.arange(len(site_frequency_spectrum))
+
+    plot_length = int(0.05*len(site_frequency_spectrum))
+    
+    plt.bar(y_pos[:plot_length],site_frequency_spectrum[:plot_length])
+    plt.show()
+    
+    return site_frequency_spectrum
+
+def frequency(sequence_dataframe,data):
     print("calculating frquencies")
-    print(sequences,'\n',data)
-    
-    index = data.index
-    length = len(sequences[0])
-    sequence_dataframe = pd.DataFrame(sequences, 
-                                      columns = range(1,length+1),
-                                      index = index
-                                      )
-    
-    print(sequence_dataframe)
+    print(sequence_dataframe,'\n',data)
 
-    
     for position in sequence_dataframe:
         print(sequence_dataframe[position].value_counts(normalize=True))
         
-    
     return
 
-
-def wright_fst(sequences,data): 
-    print("caluculating wright_fst")   
-    index = data.index
-    length = len(sequences[0])
-    sequence_dataframe = pd.DataFrame(sequences, 
-                                      columns = range(1,length+1),
-                                      index = index
-                                      )
-    
-    #for position in sequence_dataframe:
-     #   print(sequence_dataframe[position].value_counts(normalize=True))
+def oberserved_heterozygosity():
         
-    
     return
 
+def inbreeding_coefficient(sequence_dataframe,data):
+    print("calculating inbreeding coefficient")
 
+    print(data)
+    print(sequence_dataframe)
+    individuals = data['IDV'].unique()
+    heteroz_dict = {}
+    
+    for indv in individuals:
+        col_to_concatenate = data['IDV'] == indv
+        print(sequence_dataframe[col_to_concatenate]) 
+        
+        individual_dataframe = sequence_dataframe[col_to_concatenate]    
+        
+        heteroz_dict[indv] = []
+        
+        for allele in individual_dataframe:
+            print(individual_dataframe[allele][0], individual_dataframe[allele][1])
+            allele_combination = ''.join(individual_dataframe[allele].astype('str'))
+            heteroz_dict[indv].append(allele_combination)
 
+    diploid_df = pd.DataFrame.from_dict(heteroz_dict)        
+    print(diploid_df)
+    
+    for position in sequence_dataframe:
+        frequencies = sequence_dataframe[position].value_counts(normalize=True).tolist()
 
+        H_exp = 1
+        for site_freq in frequencies: 
+            H_exp *= site_freq
+        print(frequencies,H_exp) 
+        
+    return
 
+def wright_fst(sequence_dataframe,data): 
+    print("caluculating wright_fst")   
 
-
-
-
-
-
-
-
-
-
-
-
-
+    return
 
 
 
