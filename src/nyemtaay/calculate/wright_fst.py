@@ -38,50 +38,25 @@ import dendropy
 import numpy as np
 import pandas as pd
 
-def wright_fst(sequences,data):
-    print(sequences,'\n',data)
-    
+
+def wright_fst(sequences, data):
+    print(sequences, "\n", data)
+
     index = data.index
     length = len(sequences[0])
-    sequence_dataframe = pd.DataFrame(sequences, 
-                                      columns = range(1,length+1),
-                                      index = index
-                                      )
-    
+    sequence_dataframe = pd.DataFrame(
+        sequences, columns=range(1, length + 1), index=index
+    )
+
     print(sequence_dataframe)
 
-    
     for position in sequence_dataframe:
         print(sequence_dataframe[position])
         print(sequence_dataframe[position].value_counts(normalize=True))
-        
-    
+
     for position in sequences.T:
         print(position)
         print(np.mean(position))
         np
-    
+
     return
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

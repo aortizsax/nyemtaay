@@ -41,6 +41,7 @@ from nyemtaay.calculate import populationgeneticstats
 from nyemtaay.mathlib import sterling
 from nyemtaay.tests.nuetrality import tajimas_d
 
+
 def main():
     parser = argparse.ArgumentParser(description=None)
     parser.add_argument(
@@ -74,6 +75,13 @@ def main():
         help="Prefix for output files [default=%(default)s].",
     )
     parser.add_argument(
+        "-s",
+        "--subpopulation-identifier",
+        action="store",
+        default="String",
+        help="Column in the metadata that you wish to use as subpopulation ID.",
+    )
+    parser.add_argument(
         "-calc",
         "--calculate",
         action="store",
@@ -83,33 +91,35 @@ def main():
 
     args = parser.parse_args()
     print("Parsing")
-    
+    print(dir(args))
+
     # use parser modules
     # pass list of fasta files to fasta parser
     sequence_matrix = read_fasta_files(args.fastafiles)
-    
+
     # pass metadata to its parser
-    data_matrix = read_metadata(args.metadata[0],args.header)
+    data_matrix = read_metadata(args.metadata[0], args.header)
     print("Done parsing")
-    
+
     # convert matrix to dataframe with indexes matching metadata
     sequence_dataframe = to_dataframe(sequence_matrix, data_matrix)
-    
-    sequence_dataframe.wright_fst = populationgeneticstats.wright_fst(sequence_dataframe, data_matrix)
-    
-    sequence_dataframe.segregating_sites  = populationgeneticstats.number_segregating_sites(sequence_dataframe,data_matrix)
-    
-    
-    tajimas_d(sequence_dataframe,data_matrix)
-    
-    #sequence_dataframe.nuc_div = populationgeneticstats.nucleotide_diversity(sequence_dataframe,data_matrix)
 
-        
-    
-    sequence_dataframe.sfs = populationgeneticstats.frequency_spectrum(sequence_dataframe,data_matrix)
+    # sequence_dataframe.wright_fst = populationgeneticstats.wright_fst(sequence_dataframe, data_matrix)
 
+    sequence_dataframe.segregating_sites = (
+        populationgeneticstats.number_segregating_sites(sequence_dataframe, data_matrix)
+    )
 
-    #populationgeneticstats.inbreeding_coefficient(sequence_matrix,data_matrix)
+    tajimas_d(sequence_dataframe, data_matrix)
+
+    # sequence_dataframe.nuc_div = populationgeneticstats.nucleotide_diversity(sequence_dataframe,data_matrix)
+
+    print(populationgeneticstats.frequency_spectrum(sequence_dataframe, data_matrix))
+
+    # populationgeneticstats.inbreeding_coefficient(sequence_matrix,data_matrix)
+    populationgeneticstats.wright_fst(
+        sequence_dataframe, data_matrix, args.subpopulation_identifier
+    )
 
 
 if __name__ == "__main__":

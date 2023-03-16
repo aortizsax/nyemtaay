@@ -36,9 +36,7 @@
 
 
 def nchoose2(n):
-    '''
+    """
     performs n choose 2 math
-    '''
-    return ( n * ( n - 1 ) ) / 2 
-
-
+    """
+    return (n * (n - 1)) / 2
