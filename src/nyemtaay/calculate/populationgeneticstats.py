@@ -192,7 +192,7 @@ def inbreeding_coefficient(sequence_dataframe, data):
     return
 
 
-def nei_fst(sequence_dataframe, data, identifier):  # nei 1977
+def nei_fst(sequence_dataframe, data, identifier,geo):  # nei 1977
     print("caluculating nei_fst")
     # print(data)
     # print(sequence_dataframe)
@@ -295,7 +295,9 @@ def nei_fst(sequence_dataframe, data, identifier):  # nei 1977
     for subpopulation, Fst in Fst_over_loci.items():
         print("Fst", subpopulation, ":", Fst)
 
-    return
+    
+    fst_dict_to_pd_df(Fst_over_loci,False,geo)
+    return None #use Fst to make colored node networkx plot
 
 
 def expected_heterozygosity(normalized_value_counts):
@@ -352,7 +354,7 @@ def nei_chesser_pairwise_fst(sequence_dataframe, data, identifier):
     #
 
 
-def wright_fis(sequence_dataframe, data, identifier):
+def wright_fis(sequence_dataframe, data, identifier,geo):
     print("caluculating fis")
     # identififer for subpopulaitons
     ID = identifier
@@ -456,13 +458,16 @@ def wright_fis(sequence_dataframe, data, identifier):
         den_avg = np.mean(denomernator[subpopulation])
         Fis_over_loci[subpopulation] = num_avg / den_avg
 
+    F_is_dictionary = {}
     for i, subpopulation in enumerate(subpopulations):
         print("Fis", subpopulation, ":", np.mean(F_is_pop[subpopulation]))
+        F_is_dictionary[subpopulation] = np.mean(F_is_pop[subpopulation])
+    
+    fst_dict_to_pd_df(F_is_dictionary,False,geo)
+    return None # use F_is_pop to make networkx colored node
 
-    return
 
-
-def by_deme_pairwise_fst(sequence_dataframe, data, identifier):
+def by_deme_pairwise_fst(sequence_dataframe, data, identifier,geo):
     print("caluculating pairwise_fst")
 
     # print(data)
@@ -492,7 +497,7 @@ def by_deme_pairwise_fst(sequence_dataframe, data, identifier):
                 subpopulation_sequences.iloc[:, i].value_counts(normalize=True)
             )
             if length == 1:
-                H_s_sub[subpopulation].append(0.001)
+                H_s_sub[subpopulation].append(0.00)
             else:
                 H_s_sub[subpopulation].append(
                     expected_heterozygosity(base_position_frequency)
@@ -504,7 +509,7 @@ def by_deme_pairwise_fst(sequence_dataframe, data, identifier):
             comparison = subpopulation_i + "->" + subpopulation_i_prime
             if subpopulation_i != subpopulation_i_prime:
                 H_ss_sub[comparison] = []
-                isSUBPOPULATION_i = data[ID] == subpopulation_i
+                isSUBPOPULATION_i = data[ID] == subpopulation_i  #noticed this is R 
                 isSUBPOPULATION_i_prime = data[ID] == subpopulation_i_prime
                 isCOMPARISON = isSUBPOPULATION_i + isSUBPOPULATION_i_prime
                 comparison_sequences = sequence_dataframe[isCOMPARISON]
@@ -562,6 +567,7 @@ def by_deme_pairwise_fst(sequence_dataframe, data, identifier):
     # plt.show()
 
     # fix fst avg over loci
+    print(H_s_sub)
     numerator = {}
     Fst_over_loci = {}
     denomernator = {}
@@ -569,29 +575,34 @@ def by_deme_pairwise_fst(sequence_dataframe, data, identifier):
         for subpopulation_i_prime in subpopulations:
             if subpopulation_i != subpopulation_i_prime:
                 comparison = subpopulation_i + "->" + subpopulation_i_prime
+                print(comparison)
                 numerator[comparison] = []
                 Fst_over_loci[comparison] = 0
                 denomernator[comparison] = []
-                for i, H_t in enumerate(H_t_pos):
-                    H_s = H_s_sub[subpopulation][i]
+                for i, H_t in enumerate(H_ss_sub[comparison]):
+                    H_s = H_s_sub[subpopulation_i][i]
 
                     # Ht-Hs / Ht
                     numer = H_t - H_s
+                    print(numer)
                     denom = H_t
+                    print(denom)
 
                     numerator[comparison].append(numer)
                     denomernator[comparison].append(denom)
                 num_avg = np.mean(numerator[comparison])
                 den_avg = np.mean(denomernator[comparison])
+                print(num_avg,den_avg)
                 Fst_over_loci[comparison] = num_avg / den_avg
 
     for comparison, Fst in Fst_over_loci.items():
         print("Fst", comparison, ":", Fst)
-
+#true
+    fst_dict_to_pd_df(Fst_over_loci,True,geo)
     return
 
 
-def weir_goudet_population_specific_fst(sequence_dataframe, data, identifier):
+def weir_goudet_population_specific_fst(sequence_dataframe, data, identifier,geo):
     print("caluculating weir_goudet_population_specific_fst")
     # print(data)
     # print(sequence_dataframe)
@@ -623,7 +634,7 @@ def weir_goudet_population_specific_fst(sequence_dataframe, data, identifier):
             M_w_sub[subpopulation].append(
                 M_w_constanta * (sum_square_base_frequency - M_w_constantb)
             )
-    # print('M_W',M_w_sub)
+
     # M_B
     M_B_constant = 1 / (len(subpopulations) * (len(subpopulations) - 1))
 
@@ -659,7 +670,7 @@ def weir_goudet_population_specific_fst(sequence_dataframe, data, identifier):
                             * base_position_frequency_i_prime[j]
                         )
         M_B_pos.append(M_B * M_B_constant)
-
+    psFst_dictionary = {}
     for deme, M_w_i_pos in M_w_sub.items():
         numerator = 0
         denomenator = 0
@@ -670,8 +681,134 @@ def weir_goudet_population_specific_fst(sequence_dataframe, data, identifier):
 
         numerator /= seq_length
         denomenator /= seq_length
-        print("psFst", deme, ":", numerator / denomenator)
-    return numerator / denomenator
+        psFst_dictionary[deme] = numerator / denomenator
+    
+    weighted_bool = False
+    fst_dict_to_pd_df(psFst_dictionary,weighted_bool,geo)
+    
+    return None  #make dictinoary {source:[target,weight],...} plot colored node networkx graph
+
+    
+def fst_dict_to_pd_df(fxt_dictionary,weighted_bool,geometry):
+    """
+    """
+    #weighted bool == false
+    if weighted_bool:  
+        networkx_dictionary = {'Source':[],'Target':[],'Type':[],'weight':[],'mass':[]} 
+        node_color_array = [] 
+        for comparison, edge_weight in fxt_dictionary.items(): 
+            print(comparison)
+            deme_source = comparison[0] 
+            deme_target = comparison[-1]
+            node_color_array.append(1)
+           # for i, deme_target in enumerate(fxt_dictionary.keys()): 
+            #    if deme_source != deme_target:
+            networkx_dictionary["Source"].append(deme_source)
+            networkx_dictionary["Target"].append(deme_target)
+            networkx_dictionary["Type"].append('directed')
+            networkx_dictionary["weight"].append(edge_weight)
+            networkx_dictionary["mass"].append(1)
+        plot_fst_network_by_edge(networkx_dictionary,node_color_array)
+    else:
+        networkx_dictionary = {'Source':[],'Target':[],'Type':[],'weight':[],'mass':[]} 
+        node_color_array = [] 
+        for i, (deme_source, node_mass) in enumerate(fxt_dictionary.items()): 
+            node_color_array.append(node_mass)
+            if geometry == 'complete graph':
+                for j, deme_target in enumerate(fxt_dictionary.keys()): 
+                    if deme_source != deme_target:
+                        networkx_dictionary["Source"].append(deme_source)
+                        networkx_dictionary["Target"].append(deme_target)
+                        networkx_dictionary["Type"].append('Undirected')
+                        networkx_dictionary["weight"].append(1)
+                        networkx_dictionary["mass"].append(node_mass)
+            elif geometry == 'chain graph':
+                
+                if i ==0 :            
+                    networkx_dictionary["Source"].append(deme_source)
+                    networkx_dictionary["Target"].append(list(fxt_dictionary.keys())[i+1])
+                    networkx_dictionary["Type"].append('Undirected')    
+                    networkx_dictionary["weight"].append(1)
+                    networkx_dictionary["mass"].append(node_mass)                    
+    
+                elif i == len(list(fxt_dictionary.keys())) -1:
+                
+                    networkx_dictionary["Source"].append(deme_source)            
+                    networkx_dictionary["Target"].append(list(fxt_dictionary.keys())[i-1])
+                    networkx_dictionary["Type"].append('Undirected')    
+                    networkx_dictionary["weight"].append(1)
+                    networkx_dictionary["mass"].append(node_mass)                    
+                    
+                else :            
+                    networkx_dictionary["Source"].append(deme_source)
+                    networkx_dictionary["Target"].append(list(fxt_dictionary.keys())[i+1])  
+                    networkx_dictionary["Type"].append('Undirected')    
+                    networkx_dictionary["weight"].append(1)
+                    networkx_dictionary["mass"].append(node_mass)                    
+                    
+                    networkx_dictionary["Source"].append(deme_source)
+                    networkx_dictionary["Target"].append(list(fxt_dictionary.keys())[i-1])
+                    networkx_dictionary["Type"].append('Undirected')    
+                    networkx_dictionary["weight"].append(1)
+                    networkx_dictionary["mass"].append(node_mass)                    
+        print(networkx_dictionary)
+        plot_fst_network_by_node(networkx_dictionary,node_color_array)
+    return None
+
+
+def plot_fst_network_by_edge(networkx_format_dictionary,node_color_array):
+    """
+    """  
+    import networkx as nx 
+    import matplotlib.pyplot as plt
+    
+    networkx_df = pd.DataFrame.from_dict(networkx_format_dictionary)
+    print(networkx_df)
+    G = nx.from_pandas_edgelist(networkx_df,
+                                source="Source",
+                                target="Target",
+                                edge_attr="weight")
+    #node_color_array = networkx_format_dictionary['mass']
+    
+    pos = nx.circular_layout(G)
+    
+    cmap = plt.cm.plasma
+    
+    
+    nx.draw(G, 
+            pos, 
+            #node_color=node_color_array, #set floor and ceiling comparsion len need deme length
+            node_size=800, # popsize in the future 
+            #cmap=plt.cm.Blues
+            )
+    plt.show()
+    
+    return None
+
+
+def plot_fst_network_by_node(networkx_format_dictionary,node_color_array):
+    """
+    """  
+    import networkx as nx 
+    import matplotlib.pyplot as plt
+    
+    networkx_df = pd.DataFrame.from_dict(networkx_format_dictionary)
+    G = nx.from_pandas_edgelist(networkx_df,
+                                source="Source",
+                                target="Target",
+                                edge_attr="weight")
+    #node_color_array = networkx_format_dictionary['mass']
+    
+    pos = nx.circular_layout(G)
+    nx.draw(G, 
+            pos, 
+            node_color=node_color_array, #set floor and ceiling
+            node_size=800, # popsize in the future 
+            cmap=plt.cm.Blues)
+    plt.show()
+    
+    return None
+
 
 
 def decrepit_code():
