@@ -513,12 +513,11 @@ def by_deme_pairwise_fst(sequence_dataframe, data, identifier,geo):
                 isSUBPOPULATION_i_prime = data[ID] == subpopulation_i_prime
                 isCOMPARISON = isSUBPOPULATION_i + isSUBPOPULATION_i_prime
                 comparison_sequences = sequence_dataframe[isCOMPARISON]
-                print(comparison, comparison_sequences)
+
                 for i in range(sequence_dataframe.shape[1]):                    
                     base_counts = comparison_sequences.iloc[:, i]
-                    print(base_counts)
+
                     base_position_frequencies = base_counts.value_counts(normalize=True)
-                    print(base_position_frequencies)
                     
                     H_ss_sub[comparison].append(
                         expected_heterozygosity(base_position_frequencies)
@@ -570,8 +569,6 @@ def by_deme_pairwise_fst(sequence_dataframe, data, identifier,geo):
     # plt.show()
 
     # fix fst avg over loci
-    print(H_s_sub)
-    print(H_ss_sub)
     numerator = {}
     Fst_over_loci = {}
     denomernator = {}
@@ -579,7 +576,6 @@ def by_deme_pairwise_fst(sequence_dataframe, data, identifier,geo):
         for subpopulation_i_prime in subpopulations:
             if subpopulation_i != subpopulation_i_prime:
                 comparison = subpopulation_i + "->" + subpopulation_i_prime
-                print(comparison)
                 numerator[comparison] = []
                 Fst_over_loci[comparison] = 0
                 denomernator[comparison] = []
@@ -596,7 +592,6 @@ def by_deme_pairwise_fst(sequence_dataframe, data, identifier,geo):
                     denomernator[comparison].append(denom)
                 num_avg = np.mean(numerator[comparison])
                 den_avg = np.mean(denomernator[comparison])
-                print(num_avg,den_avg)
                 Fst_over_loci[comparison] = num_avg / den_avg
 
     for comparison, Fst in Fst_over_loci.items():
@@ -686,7 +681,7 @@ def weir_goudet_population_specific_fst(sequence_dataframe, data, identifier,geo
         numerator /= seq_length
         denomenator /= seq_length
         psFst_dictionary[deme] = numerator / denomenator
-    
+        print("psFst",deme,":",numerator / denomenator)
     weighted_bool = False
     fst_dict_to_pd_df(psFst_dictionary,weighted_bool,geo)
     
@@ -698,10 +693,10 @@ def fst_dict_to_pd_df(fxt_dictionary,weighted_bool,geometry):
     """
     #weighted bool == false
     if weighted_bool:  
-        networkx_dictionary = {'Source':[],'Target':[],'Type':[],'weight':[],'mass':[]} 
+        networkx_dictionary = {"Source":[],"Target":[],"Type":[],"weight":[],"mass":[]} 
         node_color_array = [] 
         for comparison, edge_weight in fxt_dictionary.items(): 
-            print(comparison)
+            #print(comparison)
             deme_source = comparison[0] 
             deme_target = comparison[-1]
             node_color_array.append(1)
@@ -709,12 +704,12 @@ def fst_dict_to_pd_df(fxt_dictionary,weighted_bool,geometry):
             #    if deme_source != deme_target:
             networkx_dictionary["Source"].append(deme_source)
             networkx_dictionary["Target"].append(deme_target)
-            networkx_dictionary["Type"].append('directed')
-            networkx_dictionary["weight"].append(edge_weight)
+            networkx_dictionary["Type"].append("Directed")
+            networkx_dictionary["weight"].append(str(round(edge_weight,3)))
             networkx_dictionary["mass"].append(1)
         plot_fst_network_by_edge(networkx_dictionary,node_color_array)
     else:
-        networkx_dictionary = {'Source':[],'Target':[],'Type':[],'weight':[],'mass':[]} 
+        networkx_dictionary = {"Source":[],"Target":[],"Type":[],"weight":[],"mass":[]}
         node_color_array = [] 
         for i, (deme_source, node_mass) in enumerate(fxt_dictionary.items()): 
             node_color_array.append(node_mass)
@@ -723,7 +718,7 @@ def fst_dict_to_pd_df(fxt_dictionary,weighted_bool,geometry):
                     if deme_source != deme_target:
                         networkx_dictionary["Source"].append(deme_source)
                         networkx_dictionary["Target"].append(deme_target)
-                        networkx_dictionary["Type"].append('Undirected')
+                        networkx_dictionary["Type"].append("Undirected")
                         networkx_dictionary["weight"].append(1)
                         networkx_dictionary["mass"].append(node_mass)
             elif geometry == 'chain graph':
@@ -731,7 +726,7 @@ def fst_dict_to_pd_df(fxt_dictionary,weighted_bool,geometry):
                 if i ==0 :            
                     networkx_dictionary["Source"].append(deme_source)
                     networkx_dictionary["Target"].append(list(fxt_dictionary.keys())[i+1])
-                    networkx_dictionary["Type"].append('Undirected')    
+                    networkx_dictionary["Type"].append("Undirected")    
                     networkx_dictionary["weight"].append(1)
                     networkx_dictionary["mass"].append(node_mass)                    
     
@@ -739,23 +734,23 @@ def fst_dict_to_pd_df(fxt_dictionary,weighted_bool,geometry):
                 
                     networkx_dictionary["Source"].append(deme_source)            
                     networkx_dictionary["Target"].append(list(fxt_dictionary.keys())[i-1])
-                    networkx_dictionary["Type"].append('Undirected')    
+                    networkx_dictionary["Type"].append("Undirected")    
                     networkx_dictionary["weight"].append(1)
                     networkx_dictionary["mass"].append(node_mass)                    
                     
                 else :            
                     networkx_dictionary["Source"].append(deme_source)
                     networkx_dictionary["Target"].append(list(fxt_dictionary.keys())[i+1])  
-                    networkx_dictionary["Type"].append('Undirected')    
+                    networkx_dictionary["Type"].append("Undirected")    
                     networkx_dictionary["weight"].append(1)
                     networkx_dictionary["mass"].append(node_mass)                    
                     
                     networkx_dictionary["Source"].append(deme_source)
                     networkx_dictionary["Target"].append(list(fxt_dictionary.keys())[i-1])
-                    networkx_dictionary["Type"].append('Undirected')    
+                    networkx_dictionary["Type"].append("Undirected")    
                     networkx_dictionary["weight"].append(1)
                     networkx_dictionary["mass"].append(node_mass)                    
-        print(networkx_dictionary)
+        #print(networkx_dictionary)
         plot_fst_network_by_node(networkx_dictionary,node_color_array)
     return None
 
@@ -767,12 +762,13 @@ def plot_fst_network_by_edge(networkx_format_dictionary,node_color_array):
     import matplotlib.pyplot as plt
     
     networkx_df = pd.DataFrame.from_dict(networkx_format_dictionary)
-    print(networkx_df)
+
 
     G = nx.from_pandas_edgelist(networkx_df,
                                 source="Source",
                                 target="Target",
-                                edge_attr="weight")
+                                edge_attr="weight",
+                                create_using=nx.DiGraph())
     
     edge_list = nx.to_pandas_edgelist(G)
     
@@ -787,13 +783,13 @@ def plot_fst_network_by_edge(networkx_format_dictionary,node_color_array):
     cmap = plt.cm.plasma
     
     
-    nx.draw(G, 
-            pos, 
-            #node_color=node_color_array, #set floor and ceiling comparsion len need deme length
-            node_size=800, # popsize in the future 
-            #cmap=plt.cm.Blues
-            )
-    plt.show()
+#    nx.draw(G, 
+#            pos, 
+#            #node_color=node_color_array, #set floor and ceiling comparsion len need deme length
+#            node_size=800, # popsize in the future 
+#            #cmap=plt.cm.Blues
+#            )
+#    plt.show()
     
     fig, ax = plt.subplots()
     nx.draw_networkx_nodes(G, pos, ax=ax)
@@ -801,12 +797,47 @@ def plot_fst_network_by_edge(networkx_format_dictionary,node_color_array):
     
     curved_edges = [edge for edge in G.edges() if list(reversed(edge)) in G.edges()]
     straight_edges = list(set(G.edges()) - set(curved_edges))
-    nx.draw_networkx_edges(G, pos, ax=ax, edgelist=straight_edges)
-    arc_rad = 0.25
+    #nx.draw_networkx_edges(G, pos, ax=ax, edgelist=straight_edges)
+    arc_rad = 0.1
+        
+    edge_labels = nx.get_edge_attributes(G, "weight")
+    print(edge_labels)
+    nx.draw_networkx_edge_labels(G, pos, edge_labels,label_pos=0.75)
     nx.draw_networkx_edges(G, pos, ax=ax, edgelist=curved_edges, connectionstyle=f'arc3, rad = {arc_rad}')
     
     plt.show()
     
+    #plt.rcParams["figure.figsize"] = [7.50, 3.50]
+    #plt.rcParams["figure.autolayout"] = True
+   # pos = nx.spring_layout(G)
+   # nx.draw(G, with_labels=True, connectionstyle="arc3,rad=0.25") #arrowstyle...
+    # Compute position of nodes
+   # pos = nx.kamada_kawai_layout(G)
+
+    # Draw nodes and edges
+#    nx.draw_networkx_nodes(G, pos,with_labels=True)
+#        
+#    nx.draw_networkx_edges(G, pos,
+#        connectionstyle="arc3,rad=0.1"  # <-- THIS IS IT
+#    )
+#    pos=nx.spring_layout(G,seed=5)
+#    print(pos)
+#    edge_weights = nx.get_edge_attributes(G,'weight')
+#    print(edge_weights)
+#    curved_edge_labels = {edge: edge_weights[edge] for edge in curved_edges}
+#    straight_edge_labels = {edge: edge_weights[edge] for edge in straight_edges}
+#    my_draw_networkx_edge_labels(G, 
+#                                       pos, 
+#                                       ax=ax, 
+#                                       edge_labels=curved_edge_labels,
+#                                       rotate=False,
+#                                       rad = arc_rad)
+#    nx.draw_networkx_edge_labels(G, pos, ax=ax, edge_labels=straight_edge_labels,rotate=False)
+
+#    plt.show()  
+    
+
+
     return None
 
 
@@ -835,11 +866,12 @@ def plot_fst_network_by_node(networkx_format_dictionary,node_color_array):
 #    plt.show()
     
     fig, ax = plt.subplots()
-    nx.draw_networkx_nodes(G, pos,
-            node_color=node_color_array, #set floor and ceiling
-            node_size=800, # popsize in the future 
-            cmap=plt.cm.Blues,
-             ax=ax)
+    nx.draw_networkx_nodes(G, 
+                            pos,
+                            node_color=node_color_array, #set floor and ceiling
+                            node_size=800, # popsize in the future 
+                            cmap=plt.cm.Blues,
+                            ax=ax)
     nx.draw_networkx_labels(G, pos, ax=ax)
     
     straight_edges = list(set(G.edges()))
@@ -849,6 +881,175 @@ def plot_fst_network_by_node(networkx_format_dictionary,node_color_array):
     
     return None
 
+def my_draw_networkx_edge_labels(
+    G,
+    pos,
+    edge_labels=None,
+    label_pos=0.5,
+    font_size=10,
+    font_color="k",
+    font_family="sans-serif",
+    font_weight="normal",
+    alpha=None,
+    bbox=None,
+    horizontalalignment="center",
+    verticalalignment="center",
+    ax=None,
+    rotate=True,
+    clip_on=True,
+    rad=0
+):
+    """Draw edge labels.
+
+    Parameters
+    ----------
+    G : graph
+        A networkx graph
+
+    pos : dictionary
+        A dictionary with nodes as keys and positions as values.
+        Positions should be sequences of length 2.
+
+    edge_labels : dictionary (default={})
+        Edge labels in a dictionary of labels keyed by edge two-tuple.
+        Only labels for the keys in the dictionary are drawn.
+
+    label_pos : float (default=0.5)
+        Position of edge label along edge (0=head, 0.5=center, 1=tail)
+
+    font_size : int (default=10)
+        Font size for text labels
+
+    font_color : string (default='k' black)
+        Font color string
+
+    font_weight : string (default='normal')
+        Font weight
+
+    font_family : string (default='sans-serif')
+        Font family
+
+    alpha : float or None (default=None)
+        The text transparency
+
+    bbox : Matplotlib bbox, optional
+        Specify text box properties (e.g. shape, color etc.) for edge labels.
+        Default is {boxstyle='round', ec=(1.0, 1.0, 1.0), fc=(1.0, 1.0, 1.0)}.
+
+    horizontalalignment : string (default='center')
+        Horizontal alignment {'center', 'right', 'left'}
+
+    verticalalignment : string (default='center')
+        Vertical alignment {'center', 'top', 'bottom', 'baseline', 'center_baseline'}
+
+    ax : Matplotlib Axes object, optional
+        Draw the graph in the specified Matplotlib axes.
+
+    rotate : bool (deafult=True)
+        Rotate edge labels to lie parallel to edges
+
+    clip_on : bool (default=True)
+        Turn on clipping of edge labels at axis boundaries
+
+    Returns
+    -------
+    dict
+        `dict` of labels keyed by edge
+
+    Examples
+    --------
+    >>> G = nx.dodecahedral_graph()
+    >>> edge_labels = nx.draw_networkx_edge_labels(G, pos=nx.spring_layout(G))
+
+    Also see the NetworkX drawing examples at
+    https://networkx.org/documentation/latest/auto_examples/index.html
+
+    See Also
+    --------
+    draw
+    draw_networkx
+    draw_networkx_nodes
+    draw_networkx_edges
+    draw_networkx_labels
+    """
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    if ax is None:
+        ax = plt.gca()
+    if edge_labels is None:
+        labels = {(u, v): d for u, v, d in G.edges(data=True)}
+    else:
+        labels = edge_labels
+    text_items = {}
+    for (n1, n2), label in labels.items():
+        (x1, y1) = pos[n1]
+        (x2, y2) = pos[n2]
+        (x, y) = (
+            x1 * label_pos + x2 * (1.0 - label_pos),
+            y1 * label_pos + y2 * (1.0 - label_pos),
+        )
+        pos_1 = ax.transData.transform(np.array(pos[n1]))
+        pos_2 = ax.transData.transform(np.array(pos[n2]))
+        linear_mid = 0.5*pos_1 + 0.5*pos_2
+        d_pos = pos_2 - pos_1
+        rotation_matrix = np.array([(0,1), (-1,0)])
+        ctrl_1 = linear_mid + rad*rotation_matrix@d_pos
+        ctrl_mid_1 = 0.5*pos_1 + 0.5*ctrl_1
+        ctrl_mid_2 = 0.5*pos_2 + 0.5*ctrl_1
+        bezier_mid = 0.5*ctrl_mid_1 + 0.5*ctrl_mid_2
+        (x, y) = ax.transData.inverted().transform(bezier_mid)
+
+        if rotate:
+            # in degrees
+            angle = np.arctan2(y2 - y1, x2 - x1) / (2.0 * np.pi) * 360
+            # make label orientation "right-side-up"
+            if angle > 90:
+                angle -= 180
+            if angle < -90:
+                angle += 180
+            # transform data coordinate angle to screen coordinate angle
+            xy = np.array((x, y))
+            trans_angle = ax.transData.transform_angles(
+                np.array((angle,)), xy.reshape((1, 2))
+            )[0]
+        else:
+            trans_angle = 0.0
+        # use default box of white with white border
+        if bbox is None:
+            bbox = dict(boxstyle="round", ec=(1.0, 1.0, 1.0), fc=(1.0, 1.0, 1.0))
+        if not isinstance(label, str):
+            label = str(label)  # this makes "1" and 1 labeled the same
+
+        t = ax.text(
+            x,
+            y,
+            label,
+            size=font_size,
+            color=font_color,
+            family=font_family,
+            weight=font_weight,
+            alpha=alpha,
+            horizontalalignment=horizontalalignment,
+            verticalalignment=verticalalignment,
+            rotation=trans_angle,
+            transform=ax.transData,
+            bbox=bbox,
+            zorder=1,
+            clip_on=clip_on,
+        )
+        text_items[(n1, n2)] = t
+
+    ax.tick_params(
+        axis="both",
+        which="both",
+        bottom=False,
+        left=False,
+        labelbottom=False,
+        labelleft=False,
+    )
+
+    return text_items
 
 
 def decrepit_code():
