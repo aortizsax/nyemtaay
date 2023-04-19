@@ -329,7 +329,7 @@ def expected_heterozygosity_depricated(normalized_value_counts):
         H_e += 2 * normalized_value_counts.iloc[0] * normalized_value_counts.iloc[1]
     else:
         for i in range(len(normalized_value_counts)):
-            for j in range(len(normalized_value_counts)):
+            for j in range(i,len(normalized_value_counts)):
                 if i < j:
                     H_e += (
                         2
@@ -513,12 +513,15 @@ def by_deme_pairwise_fst(sequence_dataframe, data, identifier,geo):
                 isSUBPOPULATION_i_prime = data[ID] == subpopulation_i_prime
                 isCOMPARISON = isSUBPOPULATION_i + isSUBPOPULATION_i_prime
                 comparison_sequences = sequence_dataframe[isCOMPARISON]
-                for i in range(sequence_dataframe.shape[1]):
-                    base_position_frequencies = comparison_sequences.iloc[
-                        :, i
-                    ].value_counts(normalize=True)
+                print(comparison, comparison_sequences)
+                for i in range(sequence_dataframe.shape[1]):                    
+                    base_counts = comparison_sequences.iloc[:, i]
+                    print(base_counts)
+                    base_position_frequencies = base_counts.value_counts(normalize=True)
+                    print(base_position_frequencies)
+                    
                     H_ss_sub[comparison].append(
-                        expected_heterozygosity(base_position_frequency)
+                        expected_heterozygosity(base_position_frequencies)
                     )
 
     # H_t
@@ -534,24 +537,24 @@ def by_deme_pairwise_fst(sequence_dataframe, data, identifier,geo):
     # print('Expected Heterozygosity for the whole population', H_t_pos)
 
     # F_st final
-    F_st_pair = {}
-    for subpopulation_i in subpopulations:
-        for subpopulation_i_prime in subpopulations:
-            if subpopulation_i != subpopulation_i_prime:
-                comparison = subpopulation_i + "->" + subpopulation_i_prime
-                F_st_pair[comparison] = []  # positional array
-                for i, H_t in enumerate(H_ss_sub[comparison]):
-                    H_s = H_s_sub[subpopulation_i][i]
-                    F_st = 1
-                    F_st -= H_s / H_t
-                    F_st_pair[comparison].append(F_st)
+#    F_st_pair = {}
+#    for subpopulation_i in subpopulations:
+#        for subpopulation_i_prime in subpopulations:
+#            if subpopulation_i != subpopulation_i_prime:
+#                comparison = subpopulation_i + "->" + subpopulation_i_prime
+#                F_st_pair[comparison] = []  # positional array
+#                for i, H_t in enumerate(H_ss_sub[comparison]):
+#                    H_s = H_s_sub[subpopulation_i][i]
+#                    F_st = 1
+#                    F_st -= H_s / H_t
+#                    F_st_pair[comparison].append(F_st)
 
     # print("F_st array", F_st_pair)
     # print('add Fst plots per deme/subpop/subspec')
     # length unique demes N_k
     # subplots(N_k,figsize=(10,3*N_k))
     N_k = len(subpopulations)  # number of demes
-    sequence_range = range(len(F_st_pair[comparison]))
+    sequence_range = range(sequence_dataframe.shape[1])#range(len(F_st_pair[comparison]))
     num_axes = math.comb(N_k, 2) * 2
     # fig, ax = plt.subplots(num_axes, figsize=(10, 3 * num_axes))
     # onAX = 0
@@ -568,6 +571,7 @@ def by_deme_pairwise_fst(sequence_dataframe, data, identifier,geo):
 
     # fix fst avg over loci
     print(H_s_sub)
+    print(H_ss_sub)
     numerator = {}
     Fst_over_loci = {}
     denomernator = {}
@@ -584,9 +588,9 @@ def by_deme_pairwise_fst(sequence_dataframe, data, identifier,geo):
 
                     # Ht-Hs / Ht
                     numer = H_t - H_s
-                    print(numer)
+                    #print(numer)
                     denom = H_t
-                    print(denom)
+#                    print(denom)
 
                     numerator[comparison].append(numer)
                     denomernator[comparison].append(denom)
@@ -764,11 +768,19 @@ def plot_fst_network_by_edge(networkx_format_dictionary,node_color_array):
     
     networkx_df = pd.DataFrame.from_dict(networkx_format_dictionary)
     print(networkx_df)
+
     G = nx.from_pandas_edgelist(networkx_df,
                                 source="Source",
                                 target="Target",
                                 edge_attr="weight")
-    #node_color_array = networkx_format_dictionary['mass']
+    
+    edge_list = nx.to_pandas_edgelist(G)
+    
+#    G = nx.from_pandas_edgelist(networkx_df,
+#                                source="Source",
+#                                target="Target",
+#                                edge_attr="weight")
+#    #node_color_array = networkx_format_dictionary['mass']
     
     pos = nx.circular_layout(G)
     
@@ -783,6 +795,18 @@ def plot_fst_network_by_edge(networkx_format_dictionary,node_color_array):
             )
     plt.show()
     
+    fig, ax = plt.subplots()
+    nx.draw_networkx_nodes(G, pos, ax=ax)
+    nx.draw_networkx_labels(G, pos, ax=ax)
+    
+    curved_edges = [edge for edge in G.edges() if list(reversed(edge)) in G.edges()]
+    straight_edges = list(set(G.edges()) - set(curved_edges))
+    nx.draw_networkx_edges(G, pos, ax=ax, edgelist=straight_edges)
+    arc_rad = 0.25
+    nx.draw_networkx_edges(G, pos, ax=ax, edgelist=curved_edges, connectionstyle=f'arc3, rad = {arc_rad}')
+    
+    plt.show()
+    
     return None
 
 
@@ -793,18 +817,34 @@ def plot_fst_network_by_node(networkx_format_dictionary,node_color_array):
     import matplotlib.pyplot as plt
     
     networkx_df = pd.DataFrame.from_dict(networkx_format_dictionary)
+    print("bynode")
     G = nx.from_pandas_edgelist(networkx_df,
                                 source="Source",
                                 target="Target",
                                 edge_attr="weight")
+                                
+    #G = nx.Graph(networkx_format_dictionary)
     #node_color_array = networkx_format_dictionary['mass']
     
     pos = nx.circular_layout(G)
-    nx.draw(G, 
-            pos, 
+#    nx.draw(G, 
+#            pos, 
+#            node_color=node_color_array, #set floor and ceiling
+#            node_size=800, # popsize in the future 
+#            cmap=plt.cm.Blues)
+#    plt.show()
+    
+    fig, ax = plt.subplots()
+    nx.draw_networkx_nodes(G, pos,
             node_color=node_color_array, #set floor and ceiling
             node_size=800, # popsize in the future 
-            cmap=plt.cm.Blues)
+            cmap=plt.cm.Blues,
+             ax=ax)
+    nx.draw_networkx_labels(G, pos, ax=ax)
+    
+    straight_edges = list(set(G.edges()))
+    nx.draw_networkx_edges(G, pos, ax=ax, edgelist=straight_edges)
+    
     plt.show()
     
     return None
