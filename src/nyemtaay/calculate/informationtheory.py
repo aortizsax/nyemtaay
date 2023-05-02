@@ -220,10 +220,11 @@ def demes_info_flow_direction(gamete_probabilty, population_dict):
     print("I",I_dict)
     return I_dict
 
-def information_flow_directionality(row_p,row_q,X,J):
+def information_flow_directionality(row_p,row_q,X,J): #pass index mu to this to call less
     """
     """
     (mu_p, mu_q, mu_pq) = index_mu_PQ(row_p,row_q,X,J)
+
 
     P_bar_J = row_p[J]/row_p[J].sum()
     Q_bar_J = row_q[J]/row_q[J].sum()
@@ -300,7 +301,7 @@ def sequences_to_random_deme_combinations(sequence_dataframe, data, identifier,g
                 comparison = deme_p + '->' + deme_q
                 gamete_random_combinations_dict[comparison] = []
 
-                for i in range(1000):
+                for i in range(100):
                     comparison_sequences = gamete_df[[deme_p,deme_q]].copy(deep=True)
                     #.sample(frac=1,random_state=1)
                     
@@ -344,7 +345,7 @@ def randomized_information_flow_directionality(gamete_random_combinations_dict,I
         I_pq = I_dict[comparison]
         
         
-        for i in range(1000):
+        for i in range(100):
             gamete_probabilty = list_of_gamete_probabilites[i] 
             row_p = gamete_probabilty[deme_p]
             row_q = gamete_probabilty[deme_q]
