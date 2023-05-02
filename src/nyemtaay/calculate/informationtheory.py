@@ -75,7 +75,8 @@ def shannon_entropy(row_p):
     H_sum = 0
 
     for p_i in row_p:
-        H_sum = p_i * np.log(p_i)
+        if p_i > 0:
+            H_sum = p_i * np.log(p_i)
 
     H *= H_sum
     return H
@@ -299,7 +300,7 @@ def sequences_to_random_deme_combinations(sequence_dataframe, data, identifier,g
                 comparison = deme_p + '->' + deme_q
                 gamete_random_combinations_dict[comparison] = []
 
-                for i in range(100):
+                for i in range(1000):
                     comparison_sequences = gamete_df[[deme_p,deme_q]].copy(deep=True)
                     #.sample(frac=1,random_state=1)
                     
@@ -343,7 +344,7 @@ def randomized_information_flow_directionality(gamete_random_combinations_dict,I
         I_pq = I_dict[comparison]
         
         
-        for i in range(100):
+        for i in range(1000):
             gamete_probabilty = list_of_gamete_probabilites[i] 
             row_p = gamete_probabilty[deme_p]
             row_q = gamete_probabilty[deme_q]
