@@ -48,29 +48,45 @@ def sequences_to_gamete_prob(sequence_dataframe, data, ID,geo):
     subpopulations = data[ID].unique()
 
     gamete_dict = {}
+    allele_dict = {}
     population_dict = {}
+    pos_allele_probablity_deme_dict = {}
     for subpopulation in subpopulations:
         isSUBPOPULATION = data[ID] == subpopulation
         population_dict[subpopulation] = isSUBPOPULATION.sum()
         subpopulation_sequences = sequence_dataframe[isSUBPOPULATION]
+        allele_dict[subpopulation] = subpopulation_sequences
         gamete_dict[subpopulation] = pd.Series(subpopulation_sequences.values.tolist()).map(lambda x: ''.join(map(str,x)))
 
     gamete_df = pd.DataFrame.from_dict(gamete_dict)
-    gamete_df#randomized combinations of this!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     gamete_counts = gamete_df.apply(pd.Series.value_counts).fillna(0)
-    #gamete_sums
     gamete_probabilty = gamete_counts.div(isSUBPOPULATION.sum(),axis=1)
     
-    return (gamete_probabilty, population_dict)#add random gamete sequences??
+    
+    for key in allele_dict.keys():
+        allele_df = allele_dict[key]
+        allele_counts = allele_df.apply(pd.Series.value_counts).fillna(0)
+        allele_probabilty = allele_counts.div(isSUBPOPULATION.sum(),axis=1)
+        pos_allele_probablity_deme_dict[key] = allele_probabilty
+        
+    return (gamete_probabilty, population_dict,pos_allele_probablity_deme_dict) #add random gamete sequences??
+    
     
 
 def demes_shannon_entropy(gamete_probabilty):  
+    print(gamete_probabilty)
     print("shannon_entropy",gamete_probabilty.apply(shannon_entropy,axis=0))
     return gamete_probabilty.apply(shannon_entropy,axis=0)    
     
+def demes_allele_shannon_entropy(pos_allele_probablity_deme_dict): 
+    for deme in pos_allele_probablity_deme_dict.keys():
+        allele_frequencies = pos_allele_probablity_deme_dict[deme]        
+        print("shannon_entropy",deme,allele_frequencies.apply(shannon_entropy,axis=0))
+        
+    return None   
 
 def shannon_entropy(row_p):
-    
+
     H = -1
     H_sum = 0
 
@@ -86,10 +102,6 @@ def demes_jsd(gamete_probabilty, population_dict):
     JSD(P||Q) = ...
     """
     jsd_dict = {}
-    D_dict = {}
-    I_dict = {}
-    I_R_dict_list = {}
-    I_R_dict_mu_std = {}
     for (deme_p, row_p) in gamete_probabilty.items():
         n_p = population_dict[deme_p]
         for (deme_q, row_q) in gamete_probabilty.items():
@@ -104,7 +116,27 @@ def demes_jsd(gamete_probabilty, population_dict):
     print("JSD",jsd_dict)
 
     return jsd_dict
-    
+def demes_allele_jsd(pos_allele_probablity_deme_dict, population_dict):
+    """
+    """
+    jsd_dict = {}
+    for (deme_p, row_pp) in pos_allele_probablity_deme_dict.items():
+
+        n_p = population_dict[deme_p]
+        for (deme_q, row_qq) in pos_allele_probablity_deme_dict.items():
+            n_q = population_dict[deme_q]
+            if deme_p != deme_q:
+                for i, row_p in row_pp.items():
+                    row_q = row_qq[i]
+                    comparison = deme_p + '->' + deme_q
+                    (w_p, w_q) = statisical_weights(n_p, n_q)
+                    jsd_dict[comparison+'_'+str(i)] = jsd(row_p, row_q, w_p, w_q)
+                
+        
+                
+    print("JSD",jsd_dict)
+
+    return jsd_dict
     
 def jsd(row_p, row_q, w_p, w_q):
     """
@@ -151,11 +183,7 @@ def demes_norm_jsd(gamete_probabilty, population_dict):
     """
     JSD(P||Q) = ...
     """
-    jsd_dict = {}
     D_dict = {}
-    I_dict = {}
-    I_R_dict_list = {}
-    I_R_dict_mu_std = {}
     for (deme_p, row_p) in gamete_probabilty.items():
         n_p = population_dict[deme_p]
         for (deme_q, row_q) in gamete_probabilty.items():
@@ -163,17 +191,9 @@ def demes_norm_jsd(gamete_probabilty, population_dict):
             if deme_p != deme_q:
                 comparison = deme_p + '->' + deme_q
                 (w_p, w_q) = statisical_weights(n_p, n_q)
-                jsd_dict[comparison] = jsd(row_p, row_q, w_p, w_q)
+
                 D_dict[comparison] = jsd_normalized_to_max(row_p, row_q, w_p, w_q)
                 
-                X = union(row_p, row_q)
-                J = intersection(row_p, row_q)
-                D = disjoint(X,J)
-                I = information_flow_directionality(row_p,row_q,X,J)
-                I_dict[comparison] = I 
-                
-                #shuffle population sequences 1000 times 
-                #get norm mean and std
                 
                 
     print("D",D_dict)
