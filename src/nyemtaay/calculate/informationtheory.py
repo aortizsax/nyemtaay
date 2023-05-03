@@ -128,9 +128,9 @@ def demes_allele_jsd(pos_allele_probablity_deme_dict, population_dict):
             if deme_p != deme_q:
                 for i, row_p in row_pp.items():
                     row_q = row_qq[i]
-                    comparison = deme_p + '->' + deme_q
+                    comparison = deme_p + '->' + deme_q + '_' + str(i)
                     (w_p, w_q) = statisical_weights(n_p, n_q)
-                    jsd_dict[comparison+'_'+str(i)] = jsd(row_p, row_q, w_p, w_q)
+                    jsd_dict[comparison] = jsd(row_p, row_q, w_p, w_q)
                 
         
                 
@@ -200,6 +200,29 @@ def demes_norm_jsd(gamete_probabilty, population_dict):
 
     return D_dict
 
+def demes_allele_norm_jsd(pos_allele_probablity_deme_dict, population_dict): ####################################
+    """
+    D(P||Q) = JSD / max
+    """
+    D_dict = {}
+    for (deme_p, row_pp) in pos_allele_probablity_deme_dict.items():
+        n_p = population_dict[deme_p]
+        for (deme_q, row_qq) in pos_allele_probablity_deme_dict.items():
+            n_q = population_dict[deme_q]
+            if deme_p != deme_q:
+                for i, row_p in row_pp.items():
+                    row_q = row_qq[i]
+                    comparison = deme_p + '->' + deme_q + '_' + str(i)
+                    (w_p, w_q) = statisical_weights(n_p, n_q)
+
+                    D_dict[comparison] = jsd_normalized_to_max(row_p, row_q, w_p, w_q)
+                    
+                
+                
+    print("D",D_dict)
+
+    return D_dict
+
 
 def jsd_normalized_to_max(row_p, row_q, w_p, w_q):
 
@@ -239,6 +262,38 @@ def demes_info_flow_direction(gamete_probabilty, population_dict):
 
     print("I",I_dict)
     return I_dict
+    
+def demes_allele_info_flow_direction(pos_allele_probablity_deme_dict, population_dict):
+    """
+    I(P||Q) = ...
+    """
+    I_dict = {}
+    I_R_dict_list = {}
+    I_R_dict_mu_std = {}
+    for (deme_p, row_pp) in pos_allele_probablity_deme_dict.items():
+        n_p = population_dict[deme_p]
+        for (deme_q, row_qq) in pos_allele_probablity_deme_dict.items():
+            n_q = population_dict[deme_q]
+            if deme_p != deme_q:
+                for i, row_p in row_pp.items():
+                    row_q = row_qq[i]
+                    comparison = deme_p + '->' + deme_q + '_' + str(i)
+                    (w_p, w_q) = statisical_weights(n_p, n_q)
+                    
+                    
+                    
+                    X = union(row_p, row_q)
+                    J = intersection(row_p, row_q)
+                    D = disjoint(X,J)
+                    I = information_flow_directionality(row_p,row_q,X,J)
+                    I_dict[comparison] = I 
+                
+                #shuffle population sequences 1000 times 
+                #get norm mean and std
+                
+
+    print("I",I_dict)
+    return I_dict
 
 def information_flow_directionality(row_p,row_q,X,J): #pass index mu to this to call less
     """
@@ -266,7 +321,7 @@ def index_mu_PQ(row_p,row_q,X,J):
     for i in J:
         mu_p += row_p[i]
         mu_q += row_q[i]
-        mu_pq += row_p[i] / row_q[i]
+        #mu_pq += row_p[i] / row_q[i]
 
     demon_p = 0
     demon_q = 0
@@ -275,11 +330,11 @@ def index_mu_PQ(row_p,row_q,X,J):
     for i in X:
         demon_p += row_p[i]
         demon_q += row_q[i]
-        demon_pq += row_p[i] / row_q[i]
+        #demon_pq += row_p[i] / row_q[i]
 
     mu_p /= demon_p
     mu_q /= demon_q
-    mu_pq /= demon_pq
+    #mu_pq /= demon_pq
     return (mu_p, mu_q, mu_pq)
 
 
