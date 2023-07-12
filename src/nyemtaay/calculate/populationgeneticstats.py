@@ -830,7 +830,7 @@ def plot_fst_network_by_node(networkx_format_dictionary,node_color_array):
                             node_color=node_color_array, #set floor and ceiling
                             node_size=800, # popsize in the future 
                             cmap=plt.cm.Blues,
-                            ax=ax)
+                            ax=ax, vmin=0, vmax=1)
     nx.draw_networkx_labels(G, pos, ax=ax)
     
     straight_edges = list(set(G.edges()))
