@@ -118,7 +118,20 @@ def read_fasta_files(filenames):
 
         #        print('length',len(alignment[0]),'num sequenes',len(labels))
         return data
+        
+def convert_to_fasta():
+    #samtools fastq -0 /dev/null in_name.bam > all_reads.fq
+    #pysam.fasta('-0', "/dev/null", "in_name.bam")
+    #how to > 
+    
+    #f = open("in_name.fasta", "w+")
+    #f.write(pysam.fasta('-0', "/dev/null", "in_name.bam"))
+    #f.close()
 
+    ##open and read the file after the appending:
+    #f = open("in_name.fasta", "r")
+    #print(f.read())
+    return
 
 def to_dataframe(sequences, data):
     index = data.index

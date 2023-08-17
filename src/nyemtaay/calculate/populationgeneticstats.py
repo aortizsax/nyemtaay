@@ -192,7 +192,8 @@ def inbreeding_coefficient(sequence_dataframe, data):
     return
 
 
-def nei_fst(sequence_dataframe, data, identifier,geo):  # nei 1977
+def nei_fst(sequence_dataframe, data, identifier):  # nei 1977
+    geo = 'complete graph'
     print("caluculating nei_fst")
     # print(data)
     # print(sequence_dataframe)

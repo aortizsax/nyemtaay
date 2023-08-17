@@ -4,3 +4,6 @@ yakherd @ git+https://github.com/jeetsukumaran/yakherd@main
 dendropy @ git+https://github.com/jeetsukumaran/dendropy@development-main
 numpy 
 pandas
+pysam
+matplotlib
+networkx

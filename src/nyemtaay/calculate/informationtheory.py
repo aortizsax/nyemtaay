@@ -263,6 +263,7 @@ def demes_info_flow_direction(gamete_probabilty, population_dict,perc_network,ge
     for index, row in perc_network.iterrows():
         deme_p = row['Source']
         deme_q = row['Target']
+        print(gamete_probabilty)
         row_p = gamete_probabilty[deme_p]
         row_q = gamete_probabilty[deme_q]
         n_p = population_dict[deme_p]
@@ -462,8 +463,9 @@ def randomized_information_flow_directionality(gamete_random_combinations_dict,I
     R_dict ={}
     
     for comparison, list_of_gamete_probabilites in gamete_random_combinations_dict.items(): 
-        deme_p = comparison[0]
-        deme_q = comparison[-1]
+        print('LOOK',comparison)
+        deme_p = comparison.split('->')[0]
+        deme_q = comparison.split('->')[-1]
         I_pq = I_dict[comparison]
         
         for i in range(100):
@@ -514,12 +516,12 @@ def directionality_dicts_to_pd_df(information_theory_dictionary,direction_dict,w
         for comparison, edge_weight in information_theory_dictionary.items(): 
             #print(comparison)
             if direction_dict[comparison] == -1:
-                deme_source = comparison[-1] 
-                deme_target = comparison[0]
+                deme_source = comparison.split('->')[-1] 
+                deme_target = comparison.split('->')[0]
             
             elif direction_dict[comparison] >= 0:
-                deme_source = comparison[0] 
-                deme_target = comparison[-1]
+                deme_source = comparison.split('->')[0] 
+                deme_target = comparison.split('->')[-1]
             node_color_array.append(1)
            # for i, deme_target in enumerate(fxt_dictionary.keys()): 
             #    if deme_source != deme_target:
@@ -538,8 +540,8 @@ def directionality_dicts_to_pd_df(information_theory_dictionary,direction_dict,w
             for comparison, edge_weight in information_theory_dictionary.items(): 
                 if edge_weight > threshold:
                     #print(comparison)
-                    deme_source = comparison[0] 
-                    deme_target = comparison[-1]
+                    deme_source = comparison.split('->')[0] 
+                    deme_target = comparison.split('->')[-1]
                     node_color_array.append(1)
                    # for i, deme_target in enumerate(fxt_dictionary.keys()): 
                     #    if deme_source != deme_target:
@@ -603,8 +605,8 @@ def information_theory_dict_to_pd_df(information_theory_dictionary,weighted_bool
         node_color_array = [] 
         for comparison, edge_weight in information_theory_dictionary.items(): 
             #print(comparison)
-            deme_source = comparison[0] 
-            deme_target = comparison[-1]
+            deme_source = comparison.split('->')[0] 
+            deme_target = comparison.split('->')[-1]
             node_color_array.append(1)
            # for i, deme_target in enumerate(fxt_dictionary.keys()): 
             #    if deme_source != deme_target:
@@ -621,8 +623,8 @@ def information_theory_dict_to_pd_df(information_theory_dictionary,weighted_bool
             for comparison, edge_weight in information_theory_dictionary.items(): 
                 if edge_weight > threshold:
                     #print(comparison)
-                    deme_source = comparison[0] 
-                    deme_target = comparison[-1]
+                    deme_source = comparison.split('->')[0] 
+                    deme_target = comparison.split('->')[-1]
                     node_color_array.append(1)
                    # for i, deme_target in enumerate(fxt_dictionary.keys()): 
                     #    if deme_source != deme_target:
@@ -750,7 +752,7 @@ def plot_unidirectional_metric(networkx_format_dictionary,node_color_array):
 
     distmatrix = nx.attr_matrix(T,edge_attr="weight")[0]
     
-    threshold = find_threshold_bfs(distmatrix.A)
+    threshold = find_threshold_bfs(distmatrix)
     threshold = distmatrix.max()
     print('Threshold is {}'.format(threshold))
     
