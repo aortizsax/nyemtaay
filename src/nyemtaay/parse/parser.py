@@ -34,7 +34,6 @@
 ###########################################################################
 ## Reader Implementation
 
-import dendropy
 import numpy as np
 import pandas as pd
 
