@@ -18,8 +18,40 @@ $ python3 -m pip install --user --upgrade git+https://github.com/aortizsax/nyemt
 
 Below I will outline the applications icluding traditional popgen stats, information theory analysis, and tissue of origin for a cancer dataset. 
 
-### Analysis
-Once cloned locally, the trial data can be check using 
+Once cloned locally, check the help page
 
-	$ cd nyemtaay/
-	$ nyemtaay -m ./tests/testdata/*.csv -f ./tests/testdata/*.fasta
+```
+nyemtaay -h
+```
+
+### Information Theory   
+
+The greek bears data will be used to show the functionality of Nyemtaay. 
+
+#### Normailzed JSD
+```
+cd nyemtaay/tests/testdata/greekbears
+nyemtaay -f bear_aln_sequences.fasta -m metadata_lat_long.csv -s LOC -calc norm-jsd -dm
+```
+
+#### Directionality 
+```
+nyemtaay -f bear_aln_sequences.fasta -m metadata_lat_long.csv -s LOC -calc directionality -dm
+```
+
+#### Partitioning based on normailzed JSD
+```
+nyemtaay -f bear_aln_sequences.fasta -m metadata_lat_long.csv -s LOC -calc norm-jsd-cluster -dm
+```
+
+#### Overlay of both Partitioning and Directionality  
+```
+nyemtaay -f bear_aln_sequences.fasta -m metadata_lat_long.csv -s LOC -calc directionality norm-jsd-cluster -dm
+```
+
+
+### Population Genetics
+
+```
+nyemtaay -f bear_aln_sequences.fasta -m metadata_lat_long.csv -s LOC -calc nei-fst
+```

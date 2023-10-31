@@ -44,7 +44,6 @@ def read_metadata(filename, hd):
     # print(population_structure)
     return population_structure
 
-
 def read_fasta_files(filenames):
     if len(filenames) > 1:
         number_of_files = len(filenames)
@@ -113,6 +112,7 @@ def read_fasta_files(filenames):
                 label = label.strip()[1:]
 
                 alignment[i] = alignment[i].strip()
+                print(alignment[i])
                 for j, SNP in enumerate(alignment[i]):
                     data[i, j] = alphabet[SNP]
 

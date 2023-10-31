@@ -468,8 +468,9 @@ def wright_fis(sequence_dataframe, data, identifier,geo):
     return None # use F_is_pop to make networkx colored node
 
 
-def by_deme_pairwise_fst(sequence_dataframe, data, identifier,geo):
+def by_deme_pairwise_fst(sequence_dataframe, data, identifier):
     print("caluculating pairwise_fst")
+    geo='complete'
 
     # print(data)
     # print(sequence_dataframe)
@@ -698,8 +699,8 @@ def fst_dict_to_pd_df(fxt_dictionary,weighted_bool,geometry):
         node_color_array = [] 
         for comparison, edge_weight in fxt_dictionary.items(): 
             #print(comparison)
-            deme_source = comparison[0] 
-            deme_target = comparison[-1]
+            deme_source = comparison.split('->')[0] 
+            deme_target = comparison.split('->')[-1]
             node_color_array.append(1)
            # for i, deme_target in enumerate(fxt_dictionary.keys()): 
             #    if deme_source != deme_target:

@@ -35,3 +35,116 @@
 
 # Libraries
 
+from community import community_louvain
+import matplotlib.cm as cm
+import matplotlib.pyplot as plt
+import networkx as nx
+
+def louvian_clustering(G,metadata): #pass metadata
+#    from mpl_toolkits.basemap import Basemap
+    
+    print('clustering')
+
+    #################### compute the best partition
+    partition = community_louvain.best_partition(G)
+
+    # draw the graph
+    pos = nx.spring_layout(G)
+    
+    # draw
+    nx.draw_networkx(G,pos,node_size=200)
+
+        
+    # color the nodes according to their partition
+    cmap = cm.get_cmap('Set3', max(partition.values()) + 1)
+    nx.draw_networkx_nodes(G, pos, partition.keys(), node_size=500,
+                           cmap=cmap, node_color=list(partition.values()))
+    nx.draw_networkx_edges(G, pos, alpha=0.5)
+    plt.show()
+    
+    # load the karate club graph
+    G = nx.karate_club_graph()
+
+    # compute the best partition
+    partition = community_louvain.best_partition(G)
+
+    # draw the graph
+    pos = nx.spring_layout(G)
+    # color the nodes according to their partition
+    cmap = cm.get_cmap('viridis', max(partition.values()) + 1)
+    nx.draw_networkx_nodes(G, pos, partition.keys(), node_size=40,
+                           cmap=cmap, node_color=list(partition.values()))
+    nx.draw_networkx_edges(G, pos, alpha=0.5)
+    plt.show()
+    return 
+
+def louvian_clustering_overmap(G,metadata): #pass metadata
+    from mpl_toolkits.basemap import Basemap
+    
+    print('clustering')
+    min_lat = metadata['LAT'].min()
+    min_long = metadata['LONG'].min()
+    max_lat = metadata['LAT'].max()
+    max_long = metadata['LONG'].max()
+    
+    
+    m = Basemap(projection='mill',
+                llcrnrlat = min_lat,
+                llcrnrlon = min_long,
+                urcrnrlat = max_lat,
+                urcrnrlon = max_long,
+                resolution='l')
+
+
+    plt.title('Analysis plotted')
+
+    #################### compute the best partition
+    partition = community_louvain.best_partition(G)
+
+    # draw the graph
+    pos = nx.spring_layout(G)
+    
+    # draw
+    nx.draw_networkx(G,pos,node_size=200)
+
+        
+    # color the nodes according to their partition
+    cmap = cm.get_cmap('Set3', max(partition.values()) + 1)
+    nx.draw_networkx_nodes(G, pos, partition.keys(), node_size=50,
+                           cmap=cmap, node_color=list(partition.values()))
+    nx.draw_networkx_labels(G, pos, ax=ax)    
+    nx.draw_networkx_edges(G, pos, alpha=0.5)
+
+
+    m.drawcoastlines()
+    m.drawcountries(linewidth=2)
+    ##m.drawstates(color='b')
+    ##m.drawcounties(color='darkred')
+    #m.fillcontinents()
+    #m.etopo()
+    m.bluemarble()
+    plt.show()
+    return 
+    
+    
+def dbscan_imp(X):
+    import numpy as np
+
+    from sklearn import metrics
+    from sklearn.cluster import DBSCAN
+    
+    db = DBSCAN(eps=0.02, min_samples=1,metric='precomputed').fit(X) 
+    labels = db.labels_
+
+    # Number of clusters in labels, ignoring noise if present.
+    n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0) 
+    n_noise_ = list(labels).count(-1)
+
+    print("Estimated number of clusters: %d" % n_clusters_)
+    print(labels)
+    print("Estimated number of noise points: %d" % n_noise_)
+    
+    return
+    
+    
+    
