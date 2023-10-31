@@ -44,7 +44,6 @@ def read_metadata(filename, hd):
     # print(population_structure)
     return population_structure
 
-
 def read_fasta_files(filenames):
     if len(filenames) > 1:
         number_of_files = len(filenames)
@@ -113,12 +112,26 @@ def read_fasta_files(filenames):
                 label = label.strip()[1:]
 
                 alignment[i] = alignment[i].strip()
+                print(alignment[i])
                 for j, SNP in enumerate(alignment[i]):
                     data[i, j] = alphabet[SNP]
 
         #        print('length',len(alignment[0]),'num sequenes',len(labels))
         return data
+        
+def convert_to_fasta():
+    #samtools fastq -0 /dev/null in_name.bam > all_reads.fq
+    #pysam.fasta('-0', "/dev/null", "in_name.bam")
+    #how to > 
+    
+    #f = open("in_name.fasta", "w+")
+    #f.write(pysam.fasta('-0', "/dev/null", "in_name.bam"))
+    #f.close()
 
+    ##open and read the file after the appending:
+    #f = open("in_name.fasta", "r")
+    #print(f.read())
+    return
 
 def to_dataframe(sequences, data):
     index = data.index

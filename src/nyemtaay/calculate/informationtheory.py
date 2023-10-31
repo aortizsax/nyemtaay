@@ -36,12 +36,13 @@ import matplotlib.pyplot as plt
 import dendropy
 import pandas as pd
 from nyemtaay.mathlib import mathfn
+from nyemtaay.cluster import informationtheoryclustering
 import os
 import math
 
 
 def sequences_to_gamete_prob(sequence_dataframe, data, ID,geo):
-    
+    #print(sequence_dataframe)
     #convert to gamete probablity dictionary per deme
 
     # identify subpopulations
@@ -60,9 +61,15 @@ def sequences_to_gamete_prob(sequence_dataframe, data, ID,geo):
 
     gamete_df = pd.DataFrame.from_dict(gamete_dict)
     gamete_counts = gamete_df.apply(pd.Series.value_counts).fillna(0)
-    gamete_probabilty = gamete_counts.div(isSUBPOPULATION.sum(),axis=1)
+    #print(gamete_counts)
+    gamete_probabilty = {}
+    for subpopulation in subpopulations:
+        isSUBPOPULATION = data[ID] == subpopulation
+
+        gamete_probabilty[subpopulation] = gamete_counts[subpopulation] / isSUBPOPULATION.sum()
     
-    
+    gamete_probabilty = pd.DataFrame.from_dict(gamete_probabilty)
+    #print(gamete_probabilty)
     for key in allele_dict.keys():
         allele_df = allele_dict[key]
         allele_counts = allele_df.apply(pd.Series.value_counts).fillna(0)
@@ -73,10 +80,10 @@ def sequences_to_gamete_prob(sequence_dataframe, data, ID,geo):
     
     
 
-def demes_shannon_entropy(gamete_probabilty,geo):  
-    print(gamete_probabilty)
-
+def demes_shannon_entropy(gamete_probabilty,geo): 
     shannon_entropy_by_deme = gamete_probabilty.apply(shannon_entropy,axis=0)
+#    print( gamete_probabilty)
+#    print(shannon_entropy_by_deme)
     weighted_bool = False
     (networkx_dictionary,node_color_array) = information_theory_dict_to_pd_df(shannon_entropy_by_deme,
                                                                     weighted_bool,  
@@ -95,14 +102,12 @@ def demes_allele_shannon_entropy(pos_allele_probablity_deme_dict):
     return None   
 
 def shannon_entropy(row_p):
-    H = -1
-    H_sum = 0
+    H = 0
 
     for p_i in row_p:
         if p_i > 0:
-            H_sum += p_i * np.log(p_i) #dont forget +=
+            H -= p_i * np.log(p_i) #dont forget +=
 
-    H *= H_sum 
     return H
     
 def demes_jsd(gamete_probabilty, population_dict,geo):
@@ -192,7 +197,7 @@ def statisical_weights(n_1,n_2):
         
     return (w_1, w_2)
 
-def demes_norm_jsd(gamete_probabilty, population_dict,geo):
+def demes_norm_jsd(gamete_probabilty, metadata, population_dict,geo):
     """
     JSD(P||Q) = ...
     """
@@ -212,11 +217,11 @@ def demes_norm_jsd(gamete_probabilty, population_dict,geo):
                                                                     weighted_bool,  
                                                                     geo,
                                                                     'edge')  
-    percolation_network = plot_unidirectional_metric(networkx_dictionary,node_color_array)
+    (percolation_network, H, dist_matrix) = plot_unidirectional_metric(networkx_dictionary,node_color_array)
     print("D",D_dict)
-    print(percolation_network)
-    print(percolation_network)
-    print()
+
+    informationtheoryclustering.dbscan_imp(dist_matrix)
+    informationtheoryclustering.louvian_clustering(H,metadata)
     return (D_dict, percolation_network)
 
 def demes_allele_norm_jsd(pos_allele_probablity_deme_dict, population_dict): ####################################
@@ -268,15 +273,20 @@ def demes_info_flow_direction(gamete_probabilty, population_dict,perc_network,ge
         n_p = population_dict[deme_p]
         n_q = population_dict[deme_q]
         comparison = deme_p + '->' + deme_q
-        (w_p, w_q) = statisical_weights(n_p, n_q)
+
         
         X = union(row_p, row_q)
+        print('X',comparison,X)
         J = intersection(row_p, row_q)
+        print('J',comparison,J)#w_p,w_q)
         D = disjoint(X,J)
-
+        print('D',comparison,D)
+        print(row_p,row_q)
+        (mu_p, mu_q, mu_pq) = index_mu_PQ(row_p,row_q,X,J)
+        #print(comparison,mu_p,mu_q)
         I = information_flow_directionality(row_p,row_q,X,J)
         I_dict[comparison] = I 
-        w_dict[comparison] = (w_p, w_q)    
+        w_dict[comparison] = (mu_p, mu_q)    
 #    for (deme_p, row_p) in gamete_probabilty.items():
 #        n_p = population_dict[deme_p]
 #        for (deme_q, row_q) in gamete_probabilty.items():
@@ -298,6 +308,7 @@ def demes_info_flow_direction(gamete_probabilty, population_dict,perc_network,ge
                 
     
     print("I",I_dict)
+    print('w',w_dict)
     return (I_dict , w_dict)
     
 def demes_allele_info_flow_direction(pos_allele_probablity_deme_dict, population_dict,perc_network):
@@ -325,6 +336,7 @@ def demes_allele_info_flow_direction(pos_allele_probablity_deme_dict, population
                     
                     X = union(row_p, row_q)
                     J = intersection(row_p, row_q)
+
                     D = disjoint(X,J)
                     print(X,J,D)
                     I = information_flow_directionality(row_p,row_q,X,J)
@@ -335,6 +347,7 @@ def demes_allele_info_flow_direction(pos_allele_probablity_deme_dict, population
                 
 
     print("I",I_dict)
+    print('w',w_dict)
     return (I_dict , w_dict)
 
 def information_flow_directionality(row_p,row_q,X,J): #pass index mu to this to call less
@@ -343,8 +356,8 @@ def information_flow_directionality(row_p,row_q,X,J): #pass index mu to this to 
     (mu_p, mu_q, mu_pq) = index_mu_PQ(row_p,row_q,X,J)
 
 
-    P_bar_J = row_p[J]/row_p[J].sum()
-    Q_bar_J = row_q[J]/row_q[J].sum()
+    P_bar_J = row_p[J]#/row_p[J].sum()
+    Q_bar_J = row_q[J]#/row_q[J].sum()
     
     weighted_subset_H_p = shannon_entropy(P_bar_J) / mu_p
     weighted_subset_H_q = shannon_entropy(Q_bar_J) / mu_q
@@ -366,17 +379,17 @@ def index_mu_PQ(row_p,row_q,X,J):
         mu_q += row_q[i]
         #mu_pq += row_p[i] / row_q[i]
 
-    demon_p = 0.0
-    demon_q = 0.0
-    demon_pq = 0.0
-    
-    for i in X:
-        demon_p += row_p[i]
-        demon_q += row_q[i]
-        #demon_pq += row_p[i] / row_q[i]
+#    demon_p = 0.0
+#    demon_q = 0.0
+#    demon_pq = 0.0
+#    
+#    for i in X:
+#        demon_p += row_p[i]
+#        demon_q += row_q[i]
+#        #demon_pq += row_p[i] / row_q[i]
 
-    mu_p /= demon_p
-    mu_q /= demon_q
+#    mu_p /= demon_p
+#    mu_q /= demon_q
     #mu_pq /= demon_pq
 #    print(mu_p, mu_q, mu_pq)
     return (mu_p, mu_q, mu_pq)
@@ -407,7 +420,7 @@ def sequences_to_random_deme_combinations(sequence_dataframe, data, identifier,p
         population_dict[subpopulation] = isSUBPOPULATION.sum()
         subpopulation_sequences = sequence_dataframe[isSUBPOPULATION]
         gamete_dict[subpopulation] = pd.Series(subpopulation_sequences.values.tolist()).map(lambda x: ''.join(map(str,x)))
-
+    max_pop_size = max(list(population_dict.values()))
     gamete_df = pd.DataFrame.from_dict(gamete_dict)
     gamete_df#randomized combinations of this!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -422,7 +435,7 @@ def sequences_to_random_deme_combinations(sequence_dataframe, data, identifier,p
         n_q = population_dict[deme_q]
         comparison = deme_p + '->' + deme_q
         gamete_random_combinations_dict[comparison] = []
-        for i in range(100):
+        for i in range(1000):
 
             comparison_sequences = gamete_df[[deme_p,deme_q]].copy(deep=True)
             #.sample(frac=1,random_state=1)
@@ -432,14 +445,15 @@ def sequences_to_random_deme_combinations(sequence_dataframe, data, identifier,p
             for deme in [deme_p,deme_q]:
                 list_of_random_sequences = []
                 
-                col = rng.integers(low=0, high=2, size=population_dict[deme_p])
-                row = rng.integers(low=0, high=population_dict[deme_p], size=population_dict[deme_p])
+                col = rng.integers(low=0, high=2, size=max_pop_size)
+                row = rng.integers(low=0, high=max_pop_size, size=max_pop_size)
                 
                 for element_index, random_index in enumerate(col):
-                    random_jndex = row[element_index]
+                    
+                    random_jndex = row[element_index]%population_dict[deme]
                     list_of_random_sequences.append(comparison_sequences.iloc[:,random_index][random_jndex])
 
-                df1 = pd.DataFrame({'sequence': range(population_dict[deme]),
+                df1 = pd.DataFrame({'sequence': range(max_pop_size),
                              deme: list_of_random_sequences,
                             }).set_index('sequence')
                 dn.append(df1)
@@ -462,11 +476,12 @@ def randomized_information_flow_directionality(gamete_random_combinations_dict,I
     R_dict ={}
     
     for comparison, list_of_gamete_probabilites in gamete_random_combinations_dict.items(): 
-        deme_p = comparison[0]
-        deme_q = comparison[-1]
+
+        deme_p = comparison.split('->')[0]
+        deme_q = comparison.split('->')[-1]
         I_pq = I_dict[comparison]
         
-        for i in range(100):
+        for i in range(1000):
 
             gamete_probabilty = list_of_gamete_probabilites[i] 
             row_p = gamete_probabilty[deme_p]
@@ -488,18 +503,15 @@ def randomized_information_flow_directionality(gamete_random_combinations_dict,I
         
         R_dict[comparison] = R
         
-    print("IR ",IR_dict)
-    print("R bidirectional edges",R_dict)    
-    print("I bidirectional edges",I_dict)    
-    
     weighted_bool = True
     (networkx_dictionary,node_color_array) = directionality_dicts_to_pd_df(R_dict,
                                                                     I_dict,
                                                                     weighted_bool,  
                                                                     geo,
                                                                     'edge')  
-    plot_bidirectional_metric(networkx_dictionary,node_color_array)
+    G = plot_bidirectional_metric(networkx_dictionary,node_color_array)
 
+    #informationtheoryclustering.louvian_clustering(G)
     
     return (R_dict, weighted_bool)
 
@@ -514,12 +526,12 @@ def directionality_dicts_to_pd_df(information_theory_dictionary,direction_dict,w
         for comparison, edge_weight in information_theory_dictionary.items(): 
             #print(comparison)
             if direction_dict[comparison] == -1:
-                deme_source = comparison[-1] 
-                deme_target = comparison[0]
+                deme_source = comparison.split('->')[-1] 
+                deme_target = comparison.split('->')[0]
             
             elif direction_dict[comparison] >= 0:
-                deme_source = comparison[0] 
-                deme_target = comparison[-1]
+                deme_source = comparison.split('->')[0] 
+                deme_target = comparison.split('->')[-1]
             node_color_array.append(1)
            # for i, deme_target in enumerate(fxt_dictionary.keys()): 
             #    if deme_source != deme_target:
@@ -538,8 +550,8 @@ def directionality_dicts_to_pd_df(information_theory_dictionary,direction_dict,w
             for comparison, edge_weight in information_theory_dictionary.items(): 
                 if edge_weight > threshold:
                     #print(comparison)
-                    deme_source = comparison[0] 
-                    deme_target = comparison[-1]
+                    deme_source = comparison.split('->')[0] 
+                    deme_target = comparison.split('->')[-1]
                     node_color_array.append(1)
                    # for i, deme_target in enumerate(fxt_dictionary.keys()): 
                     #    if deme_source != deme_target:
@@ -588,7 +600,7 @@ def directionality_dicts_to_pd_df(information_theory_dictionary,direction_dict,w
                         networkx_dictionary["weight"].append(1)
                         networkx_dictionary["mass"].append(mass)
                                    
-        print(networkx_dictionary)
+#        print(networkx_dictionary)
     return (networkx_dictionary,node_color_array)
     
 
@@ -603,8 +615,8 @@ def information_theory_dict_to_pd_df(information_theory_dictionary,weighted_bool
         node_color_array = [] 
         for comparison, edge_weight in information_theory_dictionary.items(): 
             #print(comparison)
-            deme_source = comparison[0] 
-            deme_target = comparison[-1]
+            deme_source = comparison.split('->')[0] 
+            deme_target = comparison.split('->')[-1]
             node_color_array.append(1)
            # for i, deme_target in enumerate(fxt_dictionary.keys()): 
             #    if deme_source != deme_target:
@@ -621,8 +633,8 @@ def information_theory_dict_to_pd_df(information_theory_dictionary,weighted_bool
             for comparison, edge_weight in information_theory_dictionary.items(): 
                 if edge_weight > threshold:
                     #print(comparison)
-                    deme_source = comparison[0] 
-                    deme_target = comparison[-1]
+                    deme_source = comparison.split('->')[0] 
+                    deme_target = comparison.split('->')[-1]
                     node_color_array.append(1)
                    # for i, deme_target in enumerate(fxt_dictionary.keys()): 
                     #    if deme_source != deme_target:
@@ -672,10 +684,13 @@ def information_theory_dict_to_pd_df(information_theory_dictionary,weighted_bool
                         networkx_dictionary["weight"].append(1)
                         networkx_dictionary["mass"].append(mass)
                                    
-        print(networkx_dictionary)
+#        print(networkx_dictionary)
     return (networkx_dictionary,node_color_array)
     
     
+
+
+#################################################################################
 
 def plot_node_metric(networkx_format_dictionary,node_color_array):
     """
@@ -684,22 +699,13 @@ def plot_node_metric(networkx_format_dictionary,node_color_array):
     import matplotlib.pyplot as plt
     
     networkx_df = pd.DataFrame.from_dict(networkx_format_dictionary)
-    print("bynode")
+##    print("bynode")
     G = nx.from_pandas_edgelist(networkx_df,
                                 source="Source",
                                 target="Target",
                                 edge_attr="weight")
-                                
-    #G = nx.Graph(networkx_format_dictionary)
-    #node_color_array = networkx_format_dictionary['mass']
-    
+                               
     pos = nx.circular_layout(G)
-#    nx.draw(G, 
-#            pos, 
-#            node_color=node_color_array, #set floor and ceiling
-#            node_size=800, # popsize in the future 
-#            cmap=plt.cm.Blues)
-#    plt.show()
     
     
     
@@ -719,7 +725,14 @@ def plot_node_metric(networkx_format_dictionary,node_color_array):
     
     return None
 
-
+def flatten_dict(dict_of_dicts):
+    # Flatten Nested Dictionary to Matrix using pandas DataFrame
+    df = pd.DataFrame(dict_of_dicts).T.fillna(0)
+     
+    # printing result
+    res = df.reset_index().rename(columns={'index': 'Grouped'})
+    res = [list(res.columns)] + res.values.tolist()
+    return res
     
 def plot_unidirectional_metric(networkx_format_dictionary,node_color_array):
 
@@ -735,6 +748,10 @@ def plot_unidirectional_metric(networkx_format_dictionary,node_color_array):
                                 target="Target",
                                 edge_attr="weight"
                                 )
+    dist_matrix = dict(nx.all_pairs_dijkstra_path_length(G))
+    print('matrix',np.delete(np.delete(np.array(flatten_dict(dist_matrix)),0,0),0,1))
+    dist_matrix = np.delete(np.delete(np.array(flatten_dict(dist_matrix)),0,0),0,1)
+    dist_matrix = np.square(dist_matrix.astype(float))
                                 
     #G = nx.Graph(networkx_format_dictionary)
     #node_color_array = networkx_format_dictionary['mass']
@@ -743,18 +760,16 @@ def plot_unidirectional_metric(networkx_format_dictionary,node_color_array):
 
     T=nx.minimum_spanning_tree(G)
     plt.figure()
-    nx.draw_networkx(T, pos=pos, with_labels=True, node_size = 50)
+    nx.draw_networkx(T, pos=pos, with_labels=True, node_size = 500)
     plt.show()
 
     threshold = 0.02
 
     distmatrix = nx.attr_matrix(T,edge_attr="weight")[0]
-    
-    threshold = find_threshold_bfs(distmatrix.A)
+    print("TYPE",G.edges(data=True),type(G.edges(data=True)))
+    threshold = find_threshold_bfs(distmatrix)
     threshold = distmatrix.max()
     print('Threshold is {}'.format(threshold))
-    
-#    df1.loc[lambda df: df['A'] > 0, :]
 
     
     networkx_df = pd.DataFrame.from_dict(networkx_format_dictionary)
@@ -762,11 +777,6 @@ def plot_unidirectional_metric(networkx_format_dictionary,node_color_array):
     
     #networkx_df_thresh = nx.to_pandas_edgelist(T, nodelist=list(T))  #maybe include ekey
     print("byunidedge")
-#    G = nx.from_pandas_edgelist(networkx_df_thresh,
-#                                source="source",
-#                                target="target",
-#                                edge_attr="weight"
-#                                )
     G = nx.from_pandas_edgelist(networkx_df_thresh,
                                 source="Source",
                                 target="Target",
@@ -776,8 +786,6 @@ def plot_unidirectional_metric(networkx_format_dictionary,node_color_array):
     H.add_nodes_from(sorted(G.nodes(data=True)))
     H.add_edges_from(G.edges(data=True))
                                 
-    #G = nx.Graph(networkx_format_dictionary)
-    #node_color_array = networkx_format_dictionary['mass']
     
     pos = nx.circular_layout(H)
     
@@ -785,23 +793,30 @@ def plot_unidirectional_metric(networkx_format_dictionary,node_color_array):
     nx.draw_networkx_nodes(H,  
                             pos,
                             ax=ax)  
-    nx.draw_networkx_labels(G, pos, ax=ax)    
+    nx.draw_networkx_labels(H, pos, ax=ax)    
 
     straight_edges = np.array(list(set(H.edges())))
     edge_labels = nx.get_edge_attributes(H, "weight") 
+    print("TYPE",edge_labels,type(edge_labels))
+
     nx.draw_networkx_edges(H, pos, ax=ax, edgelist=straight_edges)
 
-    plt.show()    
+    plt.show() 
     
-    return networkx_df_thresh
+    d = nx.to_dict_of_dicts(H)
+    print(d)
+    for k,v in d.items():
+        for k2,v2 in v.items():
+            d[k][k2]['weight'] = v[k2]['weight']**2
+    H = nx.Graph(d)   
+    
+    return (networkx_df_thresh, H, dist_matrix)
     
 def find_threshold_bfs(array):
+    print(type(array))
     first_node = 0
     last_node = len(array) - 1
-    probabilities = np.unique(array.ravel())
-#    probabilities = np.unique(array.flatten())[0]
-
-#    print("probabilities",probabilities)
+    probabilities = np.unique(list(array.flat))#flatten
     low = 0
     high = len(probabilities)
 
@@ -848,7 +863,6 @@ def plot_bidirectional_metric(networkx_format_dictionary,node_color_array):
     
     networkx_df = pd.DataFrame.from_dict(networkx_format_dictionary)
     networkx_df = networkx_df.fillna(0)
-    print(networkx_df)
 
     G = nx.from_pandas_edgelist(networkx_df,
                                 source="Source",
@@ -859,53 +873,9 @@ def plot_bidirectional_metric(networkx_format_dictionary,node_color_array):
     edge_list = nx.to_pandas_edgelist(G)
     
     pos = nx.circular_layout(G)
-    #pos = nx.spring_layout(G, seed=7)  # positions for all nodes - seed for reproducibility
 
     cmap = plt.cm.plasma
-    
-    
-#    #add networkx color edges https://networkx.org/documentation/stable/auto_examples/drawing/plot_directed.html#sphx-glr-auto-examples-drawing-plot-directed-py
-#    fig, ax = plt.subplots()
-#    nx.draw_networkx_nodes(G, pos, ax=ax)
-#    nx.draw_networkx_labels(G, pos, ax=ax)
-#    
-#    curved_edges = [edge for edge in G.edges() if list(reversed(edge)) in G.edges()]
-#    straight_edges = list(set(G.edges()) - set(curved_edges))
-#    #nx.draw_networkx_edges(G, pos, ax=ax, edgelist=straight_edges)
-#    arc_rad = 0.1
-#        
-#    edge_labels = nx.get_edge_attributes(G, "weight")
-#    print(edge_labels)
-#    nx.draw_networkx_edge_labels(G, pos, edge_labels,label_pos=0.75)
-#    nx.draw_networkx_edges(G, pos, ax=ax, edgelist=curved_edges, connectionstyle=f'arc3, rad = {arc_rad}')
-
-#    plt.show()
-    
-#    elarge = [(u, v) for (u, v, d) in G.edges(data=True) if float(d["weight"]) > 2.0]
-#    esmall = [(u, v) for (u, v, d) in G.edges(data=True) if float(d["weight"]) <= 2.0]
-
-
-#    # nodes
-#    nx.draw_networkx_nodes(G, pos, node_size=500)
-
-#    # edges
-#    nx.draw_networkx_edges(G, pos, edgelist=elarge, width=2)
-#    nx.draw_networkx_edges(
-#        G, pos, edgelist=esmall, width=4, alpha=0.5, edge_color="b", style="dashed"
-#    )
-
-#    # node labels
-#    nx.draw_networkx_labels(G, pos, font_size=12, font_family="sans-serif")
-#    # edge weight labels
-#    edge_labels = nx.get_edge_attributes(G, "weight")
-#    nx.draw_networkx_edge_labels(G, pos, edge_labels)
-
-#    ax = plt.gca()
-#    ax.margins(0.08)
-#    plt.axis("off")
-#    #plt.tight_layout()
-#    plt.show()
-#   
+   
 
     H = nx.DiGraph()
     H.add_nodes_from(sorted(G.nodes(data=True)))
@@ -915,16 +885,16 @@ def plot_bidirectional_metric(networkx_format_dictionary,node_color_array):
     nx.draw_networkx(H, pos)
 
     for edge in H.edges(data='weight'):
-        print(edge)
+        print(edge,dir(edge))
         weight = float(edge[2]['weight'])
         thickness = weight
         if weight > 1:
             thickness = weight * weight
         print(thickness)
-        nx.draw_networkx_edges(H, pos, edgelist=[edge], width=thickness)
+        nx.draw_networkx_edges(H, pos, edgelist=[edge], width=thickness,label=str(round(weight,2)))
     plt.show()
     
-    return None
+    return H
 
     
     
