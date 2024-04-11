@@ -49,7 +49,7 @@ def louvian_clustering(G,metadata): #pass metadata
     partition = community_louvain.best_partition(G)
 
     # draw the graph
-    pos = nx.spring_layout(G)
+    pos = nx.circular_layout(G)
     
     # draw
     nx.draw_networkx(G,pos,node_size=200)
@@ -62,20 +62,20 @@ def louvian_clustering(G,metadata): #pass metadata
     nx.draw_networkx_edges(G, pos, alpha=0.5)
     plt.show()
     
-    # load the karate club graph
-    G = nx.karate_club_graph()
+#    # load the karate club graph
+#    G = nx.karate_club_graph()
 
-    # compute the best partition
-    partition = community_louvain.best_partition(G)
+#    # compute the best partition
+#    partition = community_louvain.best_partition(G)
 
-    # draw the graph
-    pos = nx.spring_layout(G)
-    # color the nodes according to their partition
-    cmap = cm.get_cmap('viridis', max(partition.values()) + 1)
-    nx.draw_networkx_nodes(G, pos, partition.keys(), node_size=40,
-                           cmap=cmap, node_color=list(partition.values()))
-    nx.draw_networkx_edges(G, pos, alpha=0.5)
-    plt.show()
+#    # draw the graph
+#    pos = nx.draw_planar(G)
+#    # color the nodes according to their partition
+#    cmap = cm.get_cmap('viridis', max(partition.values()) + 1)
+#    nx.draw_networkx_nodes(G, pos, partition.keys(), node_size=40,
+#                           cmap=cmap, node_color=list(partition.values()))
+#    nx.draw_networkx_edges(G, pos, alpha=0.5)
+#    plt.show()
     return 
 
 def louvian_clustering_overmap(G,metadata): #pass metadata
@@ -96,7 +96,7 @@ def louvian_clustering_overmap(G,metadata): #pass metadata
                 resolution='l')
 
 
-    plt.title('Analysis plotted')
+    plt.title('Analysis plotted over map')
 
     #################### compute the best partition
     partition = community_louvain.best_partition(G)
@@ -133,7 +133,7 @@ def dbscan_imp(X):
     from sklearn import metrics
     from sklearn.cluster import DBSCAN
     
-    db = DBSCAN(eps=0.02, min_samples=1,metric='precomputed').fit(X) 
+    db = DBSCAN(eps=0.2, min_samples=1,metric='precomputed').fit(X) 
     labels = db.labels_
 
     # Number of clusters in labels, ignoring noise if present.

@@ -213,12 +213,13 @@ def demes_norm_jsd(gamete_probabilty, metadata, population_dict,geo):
                 D_dict[comparison] = jsd_normalized_to_max(row_p, row_q, w_p, w_q)
 
     weighted_bool = False
+    print("D",D_dict)
     (networkx_dictionary,node_color_array) = information_theory_dict_to_pd_df(D_dict,
                                                                     weighted_bool,  
                                                                     geo,
                                                                     'edge')  
     (percolation_network, H, dist_matrix) = plot_unidirectional_metric(networkx_dictionary,node_color_array)
-    print("D",D_dict)
+
 
     informationtheoryclustering.dbscan_imp(dist_matrix)
     informationtheoryclustering.louvian_clustering(H,metadata)
@@ -281,7 +282,7 @@ def demes_info_flow_direction(gamete_probabilty, population_dict,perc_network,ge
         print('J',comparison,J)#w_p,w_q)
         D = disjoint(X,J)
         print('D',comparison,D)
-        print(row_p,row_q)
+       # print(row_p,row_q)
         (mu_p, mu_q, mu_pq) = index_mu_PQ(row_p,row_q,X,J)
         #print(comparison,mu_p,mu_q)
         I = information_flow_directionality(row_p,row_q,X,J)
@@ -741,7 +742,7 @@ def plot_unidirectional_metric(networkx_format_dictionary,node_color_array):
     import networkx as nx 
     import matplotlib.pyplot as plt
     networkx_df = pd.DataFrame.from_dict(networkx_format_dictionary)
-    print(networkx_df)
+    #print(networkx_df)
     print("byunidedge")
     G = nx.from_pandas_edgelist(networkx_df,
                                 source="Source",
@@ -749,7 +750,7 @@ def plot_unidirectional_metric(networkx_format_dictionary,node_color_array):
                                 edge_attr="weight"
                                 )
     dist_matrix = dict(nx.all_pairs_dijkstra_path_length(G))
-    print('matrix',np.delete(np.delete(np.array(flatten_dict(dist_matrix)),0,0),0,1))
+    #print('matrix',np.delete(np.delete(np.array(flatten_dict(dist_matrix)),0,0),0,1))
     dist_matrix = np.delete(np.delete(np.array(flatten_dict(dist_matrix)),0,0),0,1)
     dist_matrix = np.square(dist_matrix.astype(float))
                                 
@@ -766,7 +767,7 @@ def plot_unidirectional_metric(networkx_format_dictionary,node_color_array):
     threshold = 0.02
 
     distmatrix = nx.attr_matrix(T,edge_attr="weight")[0]
-    print("TYPE",G.edges(data=True),type(G.edges(data=True)))
+    #print("TYPE",G.edges(data=True),type(G.edges(data=True)))
     threshold = find_threshold_bfs(distmatrix)
     threshold = distmatrix.max()
     print('Threshold is {}'.format(threshold))
@@ -804,7 +805,7 @@ def plot_unidirectional_metric(networkx_format_dictionary,node_color_array):
     plt.show() 
     
     d = nx.to_dict_of_dicts(H)
-    print(d)
+    #print(d)
     for k,v in d.items():
         for k2,v2 in v.items():
             d[k][k2]['weight'] = v[k2]['weight']**2
@@ -813,7 +814,7 @@ def plot_unidirectional_metric(networkx_format_dictionary,node_color_array):
     return (networkx_df_thresh, H, dist_matrix)
     
 def find_threshold_bfs(array):
-    print(type(array))
+    #print(type(array))
     first_node = 0
     last_node = len(array) - 1
     probabilities = np.unique(list(array.flat))#flatten
@@ -885,12 +886,12 @@ def plot_bidirectional_metric(networkx_format_dictionary,node_color_array):
     nx.draw_networkx(H, pos)
 
     for edge in H.edges(data='weight'):
-        print(edge,dir(edge))
+        #print(edge,dir(edge))
         weight = float(edge[2]['weight'])
         thickness = weight
         if weight > 1:
             thickness = weight * weight
-        print(thickness)
+        #print(thickness)
         nx.draw_networkx_edges(H, pos, edgelist=[edge], width=thickness,label=str(round(weight,2)))
     plt.show()
     
