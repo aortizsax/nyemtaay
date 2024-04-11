@@ -112,7 +112,7 @@ def read_fasta_files(filenames):
                 label = label.strip()[1:]
 
                 alignment[i] = alignment[i].strip()
-                print(alignment[i])
+               # print(alignment[i])
                 for j, SNP in enumerate(alignment[i]):
                     data[i, j] = alphabet[SNP]
 

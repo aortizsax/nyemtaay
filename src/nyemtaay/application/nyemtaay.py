@@ -102,7 +102,7 @@ def main():
 
     args = parser.parse_args()
     print("Parsing")
-    print(dir(args))
+    #print(dir(args))
 
 
     # Parse
@@ -116,7 +116,7 @@ def main():
 
     # convert matrix to dataframe with indexes matching metadata
     sequence_dataframe = to_dataframe(sequence_matrix, data_matrix)
-
+    print(sequence_dataframe)
 
 
 ##    #Analysis 
