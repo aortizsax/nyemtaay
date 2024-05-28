@@ -277,11 +277,11 @@ def demes_info_flow_direction(gamete_probabilty, population_dict,perc_network,ge
 
 
         X = union(row_p, row_q)
-        print('X',comparison,X)
+        # print('X',comparison,X)
         J = intersection(row_p, row_q)
-        print('J',comparison,J)#w_p,w_q)
+        # print('J',comparison,J)#w_p,w_q)
         D = disjoint(X,J)
-        print('D',comparison,D)
+        # print('D',comparison,D)
        # print(row_p,row_q)
         (mu_p, mu_q, mu_pq) = index_mu_PQ(row_p,row_q,X,J)
         #print(comparison,mu_p,mu_q)
@@ -308,8 +308,8 @@ def demes_info_flow_direction(gamete_probabilty, population_dict,perc_network,ge
                 #get norm mean and std
 
 
-    print("I",I_dict)
-    print('w',w_dict)
+    # print("I",I_dict)
+    # print('w',w_dict)
     return (I_dict , w_dict)
 
 def demes_allele_info_flow_direction(pos_allele_probablity_deme_dict, population_dict,perc_network):
@@ -470,7 +470,7 @@ def sequences_to_random_deme_combinations(sequence_dataframe, data, identifier,p
 
     return (gamete_random_combinations_dict, population_dict)#add random gamete sequences??
 
-def randomized_information_flow_directionality(gamete_random_combinations_dict,I_dict,geo):
+def randomized_information_flow_directionality(gamete_random_combinations_dict,I_dict, geo, plot_output_path):
     I_R_array = []
 
     IR_dict ={}
@@ -510,7 +510,7 @@ def randomized_information_flow_directionality(gamete_random_combinations_dict,I
                                                                     weighted_bool,
                                                                     geo,
                                                                     'edge')
-    # G = plot_bidirectional_metric(networkx_dictionary,node_color_array)
+    G = plot_bidirectional_metric(networkx_dictionary, node_color_array, plot_output_path)
 
     #informationtheoryclustering.louvian_clustering(G)
 
@@ -856,7 +856,7 @@ def bfs(graph, source, dest):
 
 
 
-def plot_bidirectional_metric(networkx_format_dictionary,node_color_array):
+def plot_bidirectional_metric(networkx_format_dictionary, node_color_array, plot_output_path):
     """
     """
     import networkx as nx
@@ -893,7 +893,9 @@ def plot_bidirectional_metric(networkx_format_dictionary,node_color_array):
             thickness = weight * weight
         #print(thickness)
         nx.draw_networkx_edges(H, pos, edgelist=[edge], width=thickness,label=str(round(weight,2)))
-    plt.show()
+    # plt.show()
+    plot.savefig(plot_output_path)
+    plot.close()
 
     return H
 
