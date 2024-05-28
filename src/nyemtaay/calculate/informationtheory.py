@@ -894,8 +894,8 @@ def plot_bidirectional_metric(networkx_format_dictionary, node_color_array, plot
         #print(thickness)
         nx.draw_networkx_edges(H, pos, edgelist=[edge], width=thickness,label=str(round(weight,2)))
     # plt.show()
-    plot.savefig(plot_output_path)
-    plot.close()
+    plt.savefig(plot_output_path)
+    plt.close()
 
     return H
 
