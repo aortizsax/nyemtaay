@@ -2,8 +2,10 @@
 # python-package-name==3.14.2
 yakherd @ git+https://github.com/jeetsukumaran/yakherd@main
 dendropy @ git+https://github.com/jeetsukumaran/dendropy@development-main
-numpy 
-pandas
-pysam
-matplotlib
-networkx
+numpy==1.26.4
+pandas==2.2.1
+pysam==0.22.1
+matplotlib==3.8.4
+networkx==3.3
+python-louvain==0.16
+scikit-learn==1.5.0
