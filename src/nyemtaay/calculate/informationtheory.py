@@ -221,7 +221,7 @@ def demes_norm_jsd(gamete_probabilty, metadata, population_dict,geo):
     (percolation_network, H, dist_matrix) = plot_unidirectional_metric(networkx_dictionary,node_color_array)
 
 
-    informationtheoryclustering.dbscan_imp(dist_matrix)
+    # informationtheoryclustering.dbscan_imp(dist_matrix)
     # informationtheoryclustering.louvian_clustering(H,metadata)
     return (D_dict, percolation_network)
 
@@ -397,10 +397,18 @@ def index_mu_PQ(row_p,row_q,X,J):
 
 
 
-def sequences_to_random_deme_combinations(sequence_dataframe, data, identifier,perc_network,geo):
+def sequences_to_random_deme_combinations(
+    sequence_dataframe,
+    data,
+    identifier,
+    perc_network,
+    geo,
+    nreps=1000,
+    rng=None,
+):
 
     #convert to gamete probablity dictionary per deme
-    rng = np.random.default_rng(12345)
+    rng = rng or np.random.default_rng()
 
     # identififer for subpopulaitons
     ID = identifier
@@ -436,7 +444,7 @@ def sequences_to_random_deme_combinations(sequence_dataframe, data, identifier,p
         n_q = population_dict[deme_q]
         comparison = deme_p + '->' + deme_q
         gamete_random_combinations_dict[comparison] = []
-        for i in range(1000):
+        for i in range(nreps):
 
             comparison_sequences = gamete_df[[deme_p,deme_q]].copy(deep=True)
             #.sample(frac=1,random_state=1)
@@ -470,7 +478,14 @@ def sequences_to_random_deme_combinations(sequence_dataframe, data, identifier,p
 
     return (gamete_random_combinations_dict, population_dict)#add random gamete sequences??
 
-def randomized_information_flow_directionality(gamete_random_combinations_dict,I_dict, geo, plot_output_path):
+def randomized_information_flow_directionality(
+    gamete_random_combinations_dict,
+    I_dict,
+    geo,
+    plot_output_path,
+    nreps=1000,
+    rng=None,
+):
     I_R_array = []
 
     IR_dict ={}
@@ -482,7 +497,7 @@ def randomized_information_flow_directionality(gamete_random_combinations_dict,I
         deme_q = comparison.split('->')[-1]
         I_pq = I_dict[comparison]
 
-        for i in range(1000):
+        for i in range(nreps):
 
             gamete_probabilty = list_of_gamete_probabilites[i]
             row_p = gamete_probabilty[deme_p]
